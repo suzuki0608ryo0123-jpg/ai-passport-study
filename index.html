@@ -417,6 +417,115 @@
       font-size: 13px;
     }
 
+    /* ── Monster Card ── */
+    .monster-card {
+      text-align: center;
+      padding: 22px 20px 20px;
+    }
+    .monster-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--cyan);
+      margin-bottom: 4px;
+    }
+    .monster-name {
+      font-size: 20px;
+      font-weight: 900;
+      margin-bottom: 2px;
+    }
+    .monster-stage-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .monster-svg-wrap {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      margin: 0 auto 14px;
+    }
+    .monster-svg-wrap svg {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 18px var(--monster-glow, rgba(99,102,241,0.6)));
+      animation: monFloat 3s ease-in-out infinite;
+    }
+    @keyframes monFloat {
+      0%,100% { transform: translateY(0px); }
+      50%      { transform: translateY(-8px); }
+    }
+    .monster-evolve-flash {
+      animation: monEvolve 0.6s ease;
+    }
+    @keyframes monEvolve {
+      0%   { transform: scale(0.6) rotate(-10deg); opacity: 0; }
+      60%  { transform: scale(1.15) rotate(4deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .monster-xp-bar-wrap {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+      margin: 0 8px 8px;
+    }
+    .monster-xp-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--cyan));
+      border-radius: 999px;
+      transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    }
+    .monster-xp-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .monster-next-hint {
+      font-size: 11px;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    /* ── Evolve Overlay ── */
+    #evolveOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(0,0,0,0.82);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    #evolveOverlay.show { display: flex; }
+    .evolve-popup {
+      background: var(--surface);
+      border: 1px solid rgba(99,102,241,0.5);
+      border-radius: 28px;
+      padding: 36px 40px;
+      text-align: center;
+      box-shadow: 0 0 80px rgba(99,102,241,0.4);
+      animation: popIn 0.4s cubic-bezier(.4,0,.2,1);
+      max-width: 360px;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.7); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .evolve-popup h2 { font-size: 28px; margin: 12px 0 4px; }
+    .evolve-popup p  { color: var(--muted); margin-bottom: 20px; }
+    .evolve-svg-big  { width: 140px; height: 140px; margin: 0 auto; }
+    .evolve-svg-big svg { width: 100%; height: 100%;
+      filter: drop-shadow(0 0 30px var(--monster-glow, rgba(99,102,241,0.8)));
+      animation: monFloat 3s ease-in-out infinite;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 900px) {
       .hero { grid-template-columns: 1fr; }
@@ -458,25 +567,42 @@
         <a class="btn btn-ghost" href="#knowledge">📖 知識を確認する</a>
       </div>
     </div>
-    <div class="card stat-card">
-      <h2>冒険ステータス</h2>
-      <p class="note">回答記録はブラウザに保存されます</p>
-      <div class="stat-grid">
-        <div class="stat-item">
-          <div class="stat-val" id="totalQuestions">300</div>
-          <div class="stat-label">総問題数</div>
+    <div class="card stat-card" style="display:flex;flex-direction:column;gap:0;">
+      <!-- モンスター -->
+      <div class="monster-card">
+        <div class="monster-title">🐉 学習パートナー</div>
+        <div class="monster-name" id="monsterName">タマゴ</div>
+        <div class="monster-stage-label" id="monsterStageLabel">Lv.0 — 孵化待ち</div>
+        <div class="monster-svg-wrap" id="monsterWrap">
+          <!-- SVGはJSで挿入 -->
         </div>
-        <div class="stat-item">
-          <div class="stat-val" id="answeredCount">0</div>
-          <div class="stat-label">回答済み</div>
+        <div class="monster-xp-bar-wrap">
+          <div class="monster-xp-bar" id="monsterXpBar" style="width:0%"></div>
         </div>
-        <div class="stat-item">
-          <div class="stat-val" id="correctCount">0</div>
-          <div class="stat-label">正解数</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val" id="rate">0%</div>
-          <div class="stat-label">正答率</div>
+        <div class="monster-xp-label" id="monsterXpLabel">正解 0 / 10 で進化</div>
+        <div class="monster-next-hint" id="monsterNextHint"></div>
+      </div>
+      <!-- 仕切り -->
+      <div style="height:1px;background:var(--border);margin:0 -28px;"></div>
+      <!-- スタッツ -->
+      <div style="padding:16px 0 0;">
+        <div class="stat-grid">
+          <div class="stat-item">
+            <div class="stat-val" id="totalQuestions">300</div>
+            <div class="stat-label">総問題数</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="answeredCount">0</div>
+            <div class="stat-label">回答済み</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="correctCount">0</div>
+            <div class="stat-label">正解数</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="rate">0%</div>
+            <div class="stat-label">正答率</div>
+          </div>
         </div>
       </div>
     </div>
@@ -542,6 +668,17 @@
 </main>
 
 <footer>AI Passport Quest v3 — Single HTML Learning Site</footer>
+
+<!-- 進化エフェクトオーバーレイ -->
+<div id="evolveOverlay">
+  <div class="evolve-popup">
+    <div style="font-size:36px;">✨</div>
+    <h2 id="evolveName">進化！</h2>
+    <p id="evolveDesc">新しい姿になった！</p>
+    <div class="evolve-svg-big" id="evolveSvgBig"></div>
+    <button class="btn btn-primary" style="margin-top:20px;width:100%;justify-content:center;" onclick="closeEvolve()">つづける →</button>
+  </div>
+</div>
 
 <script>
 /* =====================================================
@@ -831,9 +968,13 @@ function renderQuestion() {
 
 function answerQuestion(id, selected) {
   const q = questions.find(x => x.id === id);
-  results[id] = { selected, correct: selected === q.answer };
+  const wasCorrect = selected === q.answer;
+  const prevCorrect = Object.values(results).filter(r => r.correct).length;
+  results[id] = { selected, correct: wasCorrect };
   saveResults();
   renderQuestion();
+  const newCorrect = Object.values(results).filter(r => r.correct).length;
+  if (wasCorrect && newCorrect > prevCorrect) renderMonster(newCorrect, true);
 }
 
 /* =====================================================
@@ -881,12 +1022,364 @@ function updateStats() {
   document.getElementById('rate').textContent = answered ? Math.round(correct / answered * 100) + '%' : '0%';
 }
 
+
+// =====================================================
+// PIXEL ART MONSTER (ドット絵風SVG)
+// pixel = 8px の rect を並べて描く
+// stage 0-29, 10正解ごとに進化
+// =====================================================
+function px(x, y, color) {
+  return `<rect x="${x*8}" y="${y*8}" width="8" height="8" fill="${color}"/>`;
+}
+function pxRow(row, y, color) {
+  // row: 0=空白, 1=色, 文字列の配列
+  return row.map((v, x) => v ? px(x, y, v === 1 ? color : v) : '').join('');
+}
+
+function getMonsterData(stage) {
+  // 各ステージの定義: name, label, glow, color(メイン色), color2(サブ色), pixels(16x20グリッド)
+  // pixels: 各行は長さ16の配列。0=透明, 1=メイン色, 2=サブ色, 3=白, 4=黒, 5=目の色
+  const C = {
+    EGG:  { name:"タマゴ",       label:"Lv.0 孵化待ち",     glow:"rgba(120,120,200,0.6)", c1:"#4a4a8a", c2:"#8888cc", eye:"#aaaaff" },
+    EGG1: { name:"ヒビタマゴ",   label:"Lv.1 孵化中…",     glow:"rgba(140,140,220,0.6)", c1:"#5a5a9a", c2:"#fbbf24", eye:"#ffdd88" },
+    BABY: { name:"ベビードラゴン",label:"Lv.2 誕生！",       glow:"rgba(80,200,255,0.6)",  c1:"#1e6a9a", c2:"#4ad4ff", eye:"#ffffff" },
+    KID:  { name:"チビドラゴン",  label:"Lv.3 成長中",       glow:"rgba(60,180,255,0.65)", c1:"#155e75", c2:"#22d3ee", eye:"#ffffff" },
+    FIRE: { name:"炎ドラゴン",    label:"Lv.4 炎を吐いた",   glow:"rgba(255,140,40,0.7)",  c1:"#7c2d12", c2:"#f97316", eye:"#fde047" },
+    THUN: { name:"雷ドラゴン",    label:"Lv.5 雷を纏う",     glow:"rgba(250,220,50,0.75)", c1:"#713f12", c2:"#fbbf24", eye:"#ffffff" },
+    ICE:  { name:"氷結ドラゴン",  label:"Lv.6 氷の息吹",     glow:"rgba(100,230,255,0.8)", c1:"#0c4a6e", c2:"#7dd3fc", eye:"#e0f2fe" },
+    DARK: { name:"闇ドラゴン",    label:"Lv.7 闇の力",       glow:"rgba(160,80,255,0.8)",  c1:"#2e1065", c2:"#a78bfa", eye:"#ff0066" },
+    IRON: { name:"鋼鉄ドラゴン",  label:"Lv.8 鋼の鱗",       glow:"rgba(150,200,255,0.8)", c1:"#1e293b", c2:"#94a3b8", eye:"#60a5fa" },
+    DRAG: { name:"龍",            label:"Lv.9 龍となる",      glow:"rgba(200,100,255,0.85)",c1:"#3b0764", c2:"#e879f9", eye:"#ffd700" },
+    GDRG: { name:"黄金龍",        label:"Lv.10 黄金龍覚醒！", glow:"rgba(255,215,0,0.9)",   c1:"#451a03", c2:"#fbbf24", eye:"#ffffff" },
+  };
+
+  // 共通の scale/viewBox
+  const vb = '0 0 128 160';
+
+  // ---- ステージ別ピクセルマップ関数 ----
+  function makeSvg(pixels, c1, c2, eyeC) {
+    let out = '';
+    pixels.forEach((row, y) => {
+      row.forEach((v, x) => {
+        if (!v) return;
+        const col = v===1?c1 : v===2?c2 : v===3?'#ffffff' : v===4?'#111111' : v===5?eyeC : v;
+        out += `<rect x="${x*8}" y="${y*8}" width="8" height="8" fill="${col}"/>`;
+      });
+    });
+    return out;
+  }
+
+  // ========= ステージ別ピクセルデータ =========
+  // 16列×20行グリッド (0=透明)
+  const stageDefs = [
+    // 0: タマゴ
+    { ...C.EGG, pixels:[
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,2,1,1,1,1,2,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    ]},
+    // 1: ヒビタマゴ
+    { ...C.EGG1, pixels:[
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+      [0,0,0,0,1,1,1,2,1,1,1,1,0,0,0,0],
+      [0,0,0,1,1,1,2,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,2,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,2,1,1,1,1,0,0,0],
+      [0,0,0,1,1,2,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,2,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    ]},
+    // 2: ベビードラゴン（小さい、かわいい）
+    { ...C.BABY, pixels:[
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,2,2,0,0,2,2,0,0,0,0,0],  // 角
+      [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],  // 頭
+      [0,0,0,0,1,1,5,1,1,5,1,1,0,0,0,0],  // 目
+      [0,0,0,0,1,1,4,1,1,4,1,1,0,0,0,0],
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],  // 鼻
+      [0,0,0,0,1,1,2,1,1,2,1,1,0,0,0,0],  // 口
+      [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],  // 胴体
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,2,1,1,1,1,2,1,1,0,0,0],  // お腹
+      [0,0,0,1,1,2,1,1,1,1,2,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,1,1,0,1,1,0,0,1,1,0,1,1,0,0],  // 足
+      [0,0,1,1,0,1,1,0,0,1,1,0,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    ]},
+    // 3: チビドラゴン (尻尾つき)
+    { ...C.KID, pixels:[
+      [0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0],
+      [0,0,0,0,2,2,0,0,0,0,2,2,0,0,0,0],
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,0,0,1,1,5,5,1,1,5,5,1,1,0,0,0],
+      [0,0,0,1,1,5,4,1,1,5,4,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,2,1,2,2,1,2,1,1,0,0,0],
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,1,2,1,1,2,1,1,1,1,2,1,1,0,0,0],
+      [0,1,2,1,1,2,1,1,1,1,2,1,1,0,0,0],
+      [0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,1,1,0,1,1,0,0,0,0,1,1,0,1,1,0],
+      [0,1,1,0,1,1,0,0,0,0,1,1,0,1,1,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0], // 尻尾
+      [0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    ]},
+    // 4: 炎ドラゴン (翼の芽つき)
+    { ...C.FIRE, pixels:[
+      [0,0,2,2,0,0,0,0,0,0,0,2,2,0,0,0],  // 翼の芽
+      [0,2,2,0,0,2,0,0,0,2,0,0,2,2,0,0],  // 角
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,0,0,1,1,5,5,1,1,5,5,1,1,0,0,0],
+      [0,0,0,1,1,4,5,1,1,4,5,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,2,1,2,1,1,2,1,2,1,0,0,0],  // 牙
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [2,2,0,1,1,1,1,1,1,1,1,1,1,0,2,2],  // 翼
+      [2,2,2,1,1,2,1,1,1,1,2,1,1,2,2,0],
+      [0,2,2,1,1,2,1,1,1,1,2,1,1,2,0,0],
+      [0,0,2,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,0,1,1,0,1,1,0,0,1,1,0,1,1,0,0],
+      [0,0,1,1,0,1,1,0,0,1,1,0,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0],  // 尻尾
+      [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    ]},
+  ];
+
+  // ステージ5〜29: 色とエフェクトを変えながら体型を発展させる
+  const lateStages = [
+    { name:"雷ドラゴン",    label:"Lv.5 雷を纏う",      glow:"rgba(250,220,50,0.8)",   c1:"#713f12", c2:"#fbbf24", eye:"#ffffff" },
+    { name:"氷結ドラゴン",  label:"Lv.6 氷の息吹",      glow:"rgba(100,230,255,0.8)",  c1:"#0c4a6e", c2:"#7dd3fc", eye:"#e0f2fe" },
+    { name:"闇ドラゴン",    label:"Lv.7 闇の力",        glow:"rgba(160,80,255,0.85)",  c1:"#2e1065", c2:"#a78bfa", eye:"#ff0066" },
+    { name:"鋼鉄ドラゴン",  label:"Lv.8 鋼の鱗",        glow:"rgba(150,200,255,0.85)", c1:"#1e293b", c2:"#94a3b8", eye:"#60a5fa" },
+    { name:"深淵龍",        label:"Lv.9 龍となる",       glow:"rgba(200,100,255,0.9)",  c1:"#3b0764", c2:"#e879f9", eye:"#ffd700" },
+    { name:"黄金龍",        label:"Lv.10 黄金龍覚醒！",  glow:"rgba(255,215,0,0.9)",    c1:"#451a03", c2:"#fbbf24", eye:"#ffffff" },
+    { name:"翠嵐龍",        label:"Lv.11 翠嵐の加護",    glow:"rgba(74,222,128,0.9)",   c1:"#052e16", c2:"#4ade80", eye:"#ffffff" },
+    { name:"蒼海龍",        label:"Lv.12 蒼海の王者",    glow:"rgba(34,211,238,0.9)",   c1:"#071e30", c2:"#22d3ee", eye:"#ffffff" },
+    { name:"星辰龍",        label:"Lv.13 星辰を操る",    glow:"rgba(129,140,248,0.95)", c1:"#0a0820", c2:"#818cf8", eye:"#fbbf24" },
+    { name:"紅龍",          label:"Lv.14 紅蓮の龍",      glow:"rgba(244,63,94,0.95)",   c1:"#450a0a", c2:"#f43f5e", eye:"#fde047" },
+    { name:"覇王龍",        label:"Lv.15 覇王降臨！",    glow:"rgba(255,100,50,1.0)",   c1:"#431407", c2:"#fb923c", eye:"#fde047" },
+    { name:"至高龍",        label:"Lv.16 至高の存在",    glow:"rgba(255,220,0,1.0)",    c1:"#422006", c2:"#f59e0b", eye:"#ffffff" },
+    { name:"絶対龍",        label:"Lv.17 絶対無敵",      glow:"rgba(0,255,255,1.0)",    c1:"#001a1a", c2:"#00ffff", eye:"#ffffff" },
+    { name:"虚空龍",        label:"Lv.18 虚空の支配者",  glow:"rgba(200,0,255,1.0)",    c1:"#10001f", c2:"#c084fc", eye:"#ff0000" },
+    { name:"輝翠龍",        label:"Lv.19 輝きの龍",      glow:"rgba(127,255,0,1.0)",    c1:"#052e16", c2:"#86efac", eye:"#fbbf24" },
+    { name:"太陽龍",        label:"Lv.20 太陽を纏う！",  glow:"rgba(255,160,0,1.0)",    c1:"#431407", c2:"#fbbf24", eye:"#ff0000" },
+    { name:"神龍",          label:"Lv.21 神龍覚醒！！",  glow:"rgba(100,150,255,1.0)",  c1:"#0a0a2a", c2:"#818cf8", eye:"#ffd700" },
+    { name:"滅龍",          label:"Lv.22 滅びの龍神",    glow:"rgba(220,20,60,1.0)",    c1:"#1a0000", c2:"#dc143c", eye:"#ffffff" },
+    { name:"宇宙龍",        label:"Lv.23 宇宙の化身",    glow:"rgba(80,80,255,1.0)",    c1:"#000010", c2:"#6366f1", eye:"#00ffff" },
+    { name:"白炎龍王",      label:"Lv.24 白炎龍王！！",  glow:"rgba(255,255,255,1.0)",  c1:"#0a0a0a", c2:"#f8fafc", eye:"#fbbf24" },
+    { name:"究極龍王",      label:"Lv.25 究極龍王✨",    glow:"rgba(255,215,0,1.0)",    c1:"#000000", c2:"#ffd700", eye:"#ff0000" },
+    { name:"超究極龍",      label:"Lv.26 伝説の龍神",    glow:"rgba(255,0,255,1.0)",    c1:"#0a0010", c2:"#e879f9", eye:"#ffd700" },
+    { name:"天地龍皇",      label:"Lv.27 天地を支配",    glow:"rgba(255,128,0,1.0)",    c1:"#150800", c2:"#f97316", eye:"#ffffff" },
+    { name:"無限龍神",      label:"Lv.28 無限の力",      glow:"rgba(0,200,255,1.0)",    c1:"#000a10", c2:"#38bdf8", eye:"#ffd700" },
+    { name:"創世龍帝",      label:"Lv.29 世界の創造主✨",glow:"rgba(255,255,255,1.0)",  c1:"#050505", c2:"#fbbf24", eye:"#ff0066" },
+  ];
+
+  // 成長した龍の共通ピクセルマップ (stage 5-9: 中型)
+  function midPixels() {
+    return [
+      [0,0,2,2,0,0,0,0,0,0,0,0,2,2,0,0],
+      [0,2,2,0,0,2,2,0,0,2,2,0,0,2,2,0],
+      [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+      [0,0,0,0,1,1,5,5,5,5,1,1,0,0,0,0],
+      [0,0,0,0,1,1,4,5,5,4,1,1,0,0,0,0],
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,0,0,0,1,2,1,2,2,1,2,1,0,0,0,0],
+      [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+      [2,2,2,1,1,1,1,1,1,1,1,1,1,2,2,2],
+      [2,2,2,1,1,2,2,1,1,2,2,1,1,2,2,2],
+      [0,2,2,1,1,2,2,1,1,2,2,1,1,2,2,0],
+      [0,0,2,1,1,1,1,1,1,1,1,1,1,2,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,0,1,1,0,1,1,1,0,1,1,1,0,1,1,0],
+      [0,0,1,1,0,1,1,1,0,1,1,1,0,1,1,0],
+      [0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    ];
+  }
+
+  // 大型龍 (stage 10-19)
+  function bigPixels() {
+    return [
+      [0,2,2,2,0,0,0,0,0,0,0,0,2,2,2,0],
+      [2,2,0,0,2,2,0,0,0,2,2,0,0,0,2,2],
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,0,0,1,1,5,5,1,1,5,5,1,1,0,0,0],
+      [0,0,0,1,1,4,5,1,1,4,5,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,2,1,2,2,1,2,1,1,0,0,0],
+      [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      [2,2,2,2,1,1,1,1,1,1,1,1,2,2,2,2],
+      [2,2,2,2,1,2,2,1,1,2,2,1,2,2,2,2],
+      [0,2,2,2,1,2,2,1,1,2,2,1,2,2,2,0],
+      [0,0,2,2,1,1,1,1,1,1,1,1,2,2,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,1,1,1,1,1,0,0,1,1,1,1,1,0,0],
+      [0,0,1,1,0,1,1,0,0,1,1,0,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0],
+      [0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0],
+      [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    ];
+  }
+
+  // 究極龍 (stage 20-29) ── 王冠つき
+  function epicPixels() {
+    return [
+      [2,0,2,0,0,0,0,0,0,0,0,0,0,2,0,2],  // 王冠
+      [2,2,2,2,0,0,0,0,0,0,0,0,2,2,2,2],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,1,1,5,5,5,1,1,5,5,5,1,1,0,0],
+      [0,0,1,1,4,5,5,1,1,4,5,5,1,1,0,0],
+      [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+      [0,0,1,2,1,2,1,2,2,1,2,1,2,1,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [2,2,2,2,2,1,1,1,1,1,1,2,2,2,2,2],
+      [2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2],
+      [0,2,2,2,2,2,2,1,1,2,2,2,2,2,2,0],
+      [0,0,2,2,2,1,1,1,1,1,1,2,2,2,0,0],
+      [0,0,0,2,1,1,1,1,1,1,1,1,2,0,0,0],
+      [0,0,1,1,1,1,1,0,0,1,1,1,1,1,0,0],
+      [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0],
+      [0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0],
+      [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+    ];
+  }
+
+  // ---- ステージ選択 ----
+  if (stage < stageDefs.length) {
+    const d = stageDefs[stage];
+    const svgBody = makeSvg(d.pixels, d.c1, d.c2, d.eye);
+    return { name: d.name, label: d.label, glow: d.glow, svg: svgBody };
+  }
+
+  const ls = lateStages[stage - stageDefs.length];
+  const pixelFn = stage < 10 ? midPixels : (stage < 20 ? bigPixels : epicPixels);
+  const svgBody = makeSvg(pixelFn(), ls.c1, ls.c2, ls.eye);
+  return { name: ls.name, label: ls.label, glow: ls.glow, svg: svgBody };
+}
+
+/* =====================================================
+   MONSTER SYSTEM
+   各ステージ: 10正解ごとに進化 (0〜29 = 30段階)
+   ===================================================== */
+
+let prevStage = -1;
+
+function getMonsterStage(correctCount) {
+  return Math.min(Math.floor(correctCount / 10), 29);
+}
+
+function renderMonster(correctCount, animate) {
+  const stage = getMonsterStage(correctCount);
+  const data  = getMonsterData(stage);
+  const xpInStage   = correctCount % 10;
+  const xpPct       = (xpInStage / 10) * 100;
+  const toNext       = 10 - xpInStage;
+
+  // グロウカラー
+  document.documentElement.style.setProperty('--monster-glow', data.glow);
+  document.getElementById('monsterName').textContent  = data.name;
+  document.getElementById('monsterStageLabel').textContent = data.label;
+  document.getElementById('monsterXpBar').style.width  = xpPct + '%';
+
+  if (stage >= 29 && xpInStage === 0 && correctCount >= 290) {
+    document.getElementById('monsterXpLabel').textContent = '🏆 全ステージ制覇！';
+    document.getElementById('monsterNextHint').textContent = '';
+  } else {
+    document.getElementById('monsterXpLabel').textContent = `正解 ${xpInStage} / 10 で進化`;
+    document.getElementById('monsterNextHint').textContent =
+      stage < 29 ? `あと ${toNext} 問正解で「${getMonsterData(stage+1).name}」に進化！` : '';
+  }
+
+  const svgHtml = `<svg viewBox="0 0 128 160" xmlns="http://www.w3.org/2000/svg">${data.svg}</svg>`;
+  const wrap = document.getElementById('monsterWrap');
+
+  if (animate) {
+    wrap.innerHTML = svgHtml;
+    wrap.querySelector('svg').classList.add('monster-evolve-flash');
+  } else {
+    wrap.innerHTML = svgHtml;
+  }
+
+  // 進化演出
+  if (animate && stage > prevStage && prevStage >= 0) {
+    showEvolve(data);
+  }
+  prevStage = stage;
+}
+
+function showEvolve(data) {
+  document.getElementById('evolveName').textContent = `${data.name} に進化！`;
+  document.getElementById('evolveDesc').textContent  = data.label;
+  document.getElementById('evolveSvgBig').innerHTML =
+    `<svg viewBox="0 0 128 160" xmlns="http://www.w3.org/2000/svg">${data.svg}</svg>`;
+  document.getElementById('evolveOverlay').classList.add('show');
+}
+
+function closeEvolve() {
+  document.getElementById('evolveOverlay').classList.remove('show');
+}
+
 /* =====================================================
    INIT
    ===================================================== */
 setMode('normal'); // ボタン初期状態
 renderLessons();
 renderQuestion();
+// モンスター初期表示（保存済みの正解数で復元）
+const initCorrect = Object.values(results).filter(r => r.correct).length;
+renderMonster(initCorrect, false);
 </script>
 </body>
 </html>
