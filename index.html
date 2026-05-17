@@ -398,6 +398,52 @@
     .empty-state .big { font-size: 48px; }
     .empty-state p { margin-top: 12px; }
 
+
+    /* ── Reset ── */
+    .reset-btn {
+      width: 100%;
+      margin-top: 14px;
+      justify-content: center;
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.35);
+      color: #f87171;
+      box-shadow: none;
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .reset-btn:hover { background: rgba(248,113,113,0.22); border-color: rgba(248,113,113,0.7); }
+
+    /* ── Confirm Dialog ── */
+    #resetOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 998;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+    }
+    #resetOverlay.show { display: flex; }
+    .reset-popup {
+      background: var(--surface);
+      border: 1px solid rgba(248,113,113,0.4);
+      border-radius: 24px;
+      padding: 32px 36px;
+      text-align: center;
+      max-width: 340px;
+      width: 90%;
+      box-shadow: 0 0 60px rgba(248,113,113,0.25);
+      animation: popIn 0.3s cubic-bezier(.4,0,.2,1);
+    }
+    .reset-popup .icon { font-size: 40px; margin-bottom: 10px; }
+    .reset-popup h3 { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+    .reset-popup p { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+    .reset-popup-btns { display: flex; gap: 10px; }
+    .reset-popup-btns .btn { flex: 1; justify-content: center; }
+
     /* ── GitHub section ── */
     .github-card p { color: var(--muted); line-height: 1.75; }
     .github-card code {
@@ -605,6 +651,10 @@
           </div>
         </div>
       </div>
+      <!-- リセット -->
+      <div style="padding:0 0 6px;">
+        <button class="btn reset-btn" onclick="openReset()">🗑️ 記録をリセットする</button>
+      </div>
     </div>
   </div>
 
@@ -670,6 +720,19 @@
 <footer>AI Passport Quest v3 — Single HTML Learning Site</footer>
 
 <!-- 進化エフェクトオーバーレイ -->
+<!-- リセット確認ダイアログ -->
+<div id="resetOverlay">
+  <div class="reset-popup">
+    <div class="icon">⚠️</div>
+    <h3>本当にリセットしますか？</h3>
+    <p>モンスターの成長・全問題の回答記録が<br>完全に消えます。この操作は取り消せません。</p>
+    <div class="reset-popup-btns">
+      <button class="btn btn-ghost" onclick="closeReset()">キャンセル</button>
+      <button class="btn" style="background:linear-gradient(135deg,#ef4444,#f87171);box-shadow:0 8px 24px rgba(239,68,68,0.3);" onclick="doReset()">リセットする</button>
+    </div>
+  </div>
+</div>
+
 <div id="evolveOverlay">
   <div class="evolve-popup">
     <div style="font-size:36px;">✨</div>
@@ -1549,6 +1612,23 @@ function showEvolve(data) {
 function closeEvolve() {
   document.getElementById('evolveOverlay').classList.remove('show');
 }
+
+function openReset()  { document.getElementById('resetOverlay').classList.add('show'); }
+function closeReset() { document.getElementById('resetOverlay').classList.remove('show'); }
+function doReset() {
+  // localStorageをクリア
+  localStorage.removeItem('aiPassportQuestResults');
+  // resultsオブジェクトをリセット
+  Object.keys(results).forEach(k => delete results[k]);
+  // UI更新
+  prevStage = -1;
+  currentIndex = 0;
+  closeReset();
+  renderQuestion();
+  renderMonster(0, false);
+  updateStats();
+}
+
 
 /* =====================================================
    INIT
