@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Passport Quest - AIパスポート学習サイト</title>
+  <style>
+    :root {
+      --bg: #080b1a;
+      --panel: rgba(18, 24, 52, 0.92);
+      --panel-2: rgba(26, 34, 72, 0.92);
+      --text: #f5f7ff;
+      --muted: #aab4d6;
+      --primary: #7c5cff;
+      --secondary: #00d4ff;
+      --accent: #ffcc4d;
+      --danger: #ff5c7a;
+      --success: #39e58c;
+      --border: rgba(255,255,255,0.14);
+      --shadow: 0 20px 60px rgba(0,0,0,0.42);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(124,92,255,0.32), transparent 32%),
+        radial-gradient(circle at 80% 12%, rgba(0,212,255,0.18), transparent 30%),
+        linear-gradient(160deg, #060816 0%, #111735 50%, #070914 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: linear-gradient(to bottom, black, transparent 82%);
+      z-index: -1;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(6,8,22,0.76);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+    }
+
+    .logo {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      box-shadow: 0 0 30px rgba(124,92,255,0.5);
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      margin-left: 14px;
+    }
+
+    .nav a:hover { color: var(--text); }
+
+    main {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 34px 18px 80px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-top: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 26px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), transparent 42%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.07);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-size: clamp(34px, 6vw, 64px);
+      line-height: 1.02;
+      margin: 18px 0 14px;
+      letter-spacing: -0.04em;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin: 0 0 16px;
+    }
+
+    h3 { margin: 0 0 10px; }
+    p { color: var(--muted); line-height: 1.75; }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #fff, var(--secondary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    button, .btn {
+      border: 0;
+      cursor: pointer;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--primary), #4e9bff);
+      border-radius: 16px;
+      padding: 13px 18px;
+      font-weight: 800;
+      box-shadow: 0 12px 30px rgba(124,92,255,0.28);
+      transition: transform 0.15s ease, filter 0.15s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button:hover, .btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    .btn-ghost { background: rgba(255,255,255,0.08); box-shadow: none; border: 1px solid var(--border); }
+    .btn-small { padding: 9px 12px; border-radius: 12px; font-size: 13px; }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 28px;
+      color: var(--text);
+    }
+
+    .stat span { color: var(--muted); font-size: 13px; }
+
+    section { margin-top: 32px; }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .lesson-card {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 18px;
+      min-height: 180px;
+    }
+
+    .lesson-card .tag {
+      color: var(--secondary);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .lesson-card ul { padding-left: 18px; color: var(--muted); line-height: 1.7; }
+
+    .quiz-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .category-list {
+      display: grid;
+      gap: 8px;
+      position: sticky;
+      top: 82px;
+    }
+
+    .category-btn {
+      width: 100%;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.07);
+      box-shadow: none;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .category-btn.active {
+      background: linear-gradient(135deg, rgba(124,92,255,0.95), rgba(0,212,255,0.56));
+    }
+
+    .quiz-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .quiz-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .progress {
+      height: 12px;
+      background: rgba(255,255,255,0.09);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 14px 0 22px;
+    }
+
+    .progress > div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--secondary), var(--accent));
+      transition: width 0.25s ease;
+    }
+
+    .question {
+      font-size: 22px;
+      font-weight: 850;
+      line-height: 1.55;
+      margin-bottom: 18px;
+    }
+
+    .choices { display: grid; gap: 12px; }
+
+    .choice {
+      width: 100%;
+      justify-content: flex-start;
+      background: rgba(255,255,255,0.08);
+      box-shadow: none;
+      border: 1px solid var(--border);
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .choice.correct { background: rgba(57,229,140,0.22); border-color: rgba(57,229,140,0.75); }
+    .choice.wrong { background: rgba(255,92,122,0.22); border-color: rgba(255,92,122,0.75); }
+
+    .explanation {
+      display: none;
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .explanation.show { display: block; }
+
+    .quiz-controls {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    footer {
+      padding: 30px 18px;
+      color: var(--muted);
+      text-align: center;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 900px) {
+      .hero, .quiz-layout { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      .category-list { position: static; }
+      .nav { align-items: flex-start; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="brand"><div class="logo">AI</div><span>AI Passport Quest</span></div>
+      <nav class="nav-links">
+        <a href="#knowledge">知識ページ</a>
+        <a href="#quiz">一問一答</a>
+        <a href="#github">GitHub格納</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="card">
+        <span class="badge">LEVEL UP YOUR AI SKILL</span>
+        <h1>AIパスポート対策を<br><span class="gradient-text">ゲーム感覚で攻略</span></h1>
+        <p>AI基礎、生成AI、機械学習、倫理、セキュリティ、ビジネス活用までを1ファイルで学べる専用サイトです。知識ページで理解し、120問の4択クイズで定着させましょう。</p>
+        <div class="actions">
+          <a class="btn" href="#quiz">クイズを開始</a>
+          <a class="btn btn-ghost" href="#knowledge">先に知識を学ぶ</a>
+        </div>
+      </div>
+      <div class="card">
+        <h2>冒険ステータス</h2>
+        <p>回答状況はこのブラウザ内に保存されます。GitHub Pagesで公開してもそのまま使えます。</p>
+        <div class="status-grid">
+          <div class="stat"><strong id="totalQuestions">120</strong><span>総問題数</span></div>
+          <div class="stat"><strong id="answeredCount">0</strong><span>回答済み</span></div>
+          <div class="stat"><strong id="correctCount">0</strong><span>正解数</span></div>
+          <div class="stat"><strong id="rate">0%</strong><span>正答率</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="knowledge" class="card">
+      <h2>知識ページ</h2>
+      <p>まずは全体像を押さえましょう。AIパスポート対策では、用語暗記だけでなく「業務でどう使うか」「リスクをどう扱うか」まで理解するのが重要です。</p>
+      <div class="grid" id="lessonGrid"></div>
+    </section>
+
+    <section id="quiz">
+      <div class="quiz-layout">
+        <aside class="card">
+          <h2>カテゴリー</h2>
+          <div class="category-list" id="categoryList"></div>
+        </aside>
+        <div class="quiz-card">
+          <div class="quiz-head">
+            <span class="pill" id="categoryLabel">AI基礎</span>
+            <span class="pill" id="questionNumber">1 / 10</span>
+          </div>
+          <div class="progress"><div id="progressBar"></div></div>
+          <div class="question" id="questionText"></div>
+          <div class="choices" id="choices"></div>
+          <div class="explanation" id="explanation"></div>
+          <div class="quiz-controls">
+            <button class="btn-ghost" id="prevBtn">前の問題</button>
+            <button id="nextBtn">次の問題</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="github" class="card">
+      <h2>GitHub格納手順</h2>
+      <p>このファイルを <strong>index.html</strong> として保存し、GitHubの新規リポジトリにアップロードしてください。その後、Settings → Pages → Deploy from a branch → main / root を選ぶと公開できます。</p>
+    </section>
+  </main>
+
+  <footer>AI Passport Quest / Single HTML Learning Site</footer>
+
+  <script>
+    const lessons = [
+      {cat:'AI基礎', points:['AIは人間の知的活動をコンピュータで実現する技術領域。','ルールベース、機械学習、深層学習、生成AIを区別する。','強いAIと弱いAIの違いも基本論点。']},
+      {cat:'生成AI', points:['文章、画像、音声、コードなどを生成するAI。','LLMは大量のテキストから言語パターンを学習する。','ハルシネーション対策として検証と出典確認が重要。']},
+      {cat:'機械学習', points:['データから規則性を学習して予測や分類を行う。','教師あり、教師なし、強化学習が代表的。','過学習、汎化性能、評価指標を理解する。']},
+      {cat:'ディープラーニング', points:['ニューラルネットワークを多層化した学習手法。','画像認識、音声認識、自然言語処理で活用。','大量データと計算資源が重要。']},
+      {cat:'データ活用', points:['データ収集、前処理、分析、可視化、意思決定の流れ。','欠損値、外れ値、バイアスに注意。','データ品質がAI成果を左右する。']},
+      {cat:'プロンプト', points:['AIへの指示文。目的、条件、形式、制約を明確にする。','役割指定、例示、出力形式指定が有効。','機密情報を入力しないことも重要。']},
+      {cat:'AI倫理', points:['公平性、透明性、説明責任、安全性が重要。','差別や偏見を助長しない運用が必要。','人間による最終判断を残す設計が望ましい。']},
+      {cat:'著作権・個人情報', points:['生成物の利用条件と権利関係を確認する。','個人情報は目的外利用や無断入力を避ける。','社内ルールと法令遵守が必須。']},
+      {cat:'セキュリティ', points:['情報漏えい、プロンプトインジェクションに注意。','アクセス権限とログ管理が重要。','生成AI利用ルールを整備する。']},
+      {cat:'ビジネス活用', points:['企画、営業、CS、マーケ、開発で活用可能。','ROIや業務時間削減効果を測定する。','PoCから小さく始める。']},
+      {cat:'業務改善', points:['定型作業、文書作成、要約、分類、問い合わせ対応に強い。','現状業務の棚卸しから始める。','人の判断が必要な工程を切り分ける。']},
+      {cat:'EC・マーケティング活用', points:['商品説明、レビュー分析、広告文、FAQ作成に活用。','顧客データの扱いに注意する。','A/Bテストで効果検証する。']}
+    ];
+
+    const bank = [
+      ['AI基礎','AIの説明として最も適切なものは？',['人間の知的活動をコンピュータで模倣・支援する技術','表計算だけを自動化する技術','インターネット回線を高速化する技術','画像を必ず生成する技術'],0,'AIは推論、認識、分類、生成などの知的活動をコンピュータで実現・支援する技術領域です。'],
+      ['AI基礎','弱いAIの説明として正しいものは？',['特定の目的やタスクに特化したAI','人間と同じ意識を持つAI','必ずロボットの形をしたAI','ネットに接続できないAI'],0,'現在実用化されている多くのAIは、翻訳や画像認識など特定タスクに特化した弱いAIです。'],
+      ['AI基礎','ルールベースAIの特徴は？',['人が決めた条件や規則に基づいて動作する','大量データから必ず自律的に学習する','画像生成専用である','法律上利用できない'],0,'ルールベースAIは if-then のような明示的な規則に従って判断します。'],
+      ['AI基礎','AI活用で最初に明確化すべきことは？',['解決したい業務課題','最新GPUの型番','SNSのフォロワー数','会社のロゴ色'],0,'AI導入は技術起点ではなく、解決すべき課題や目的を明確にすることが重要です。'],
+      ['AI基礎','AIと通常のプログラムの違いとして近いものは？',['AIはデータからパターンを学習できる場合がある','AIは電気を使わない','通常のプログラムは画面表示できない','AIは必ず無料で使える'],0,'機械学習型AIはデータから規則性を学び、予測や分類に利用できます。'],
+      ['AI基礎','AIパスポートで重視されやすい観点は？',['AIの仕組み、活用、リスク、倫理の基礎理解','量子コンピュータの回路設計のみ','OSカーネル開発のみ','手書き計算のみ'],0,'AIパスポートでは技術だけでなく、ビジネス活用やリスク管理も問われます。'],
+      ['AI基礎','AI導入におけるPoCとは？',['小規模な概念実証','完成品の大量販売','法務監査のみ','社員旅行計画'],0,'PoCはProof of Conceptの略で、小さく試して実現可能性や効果を検証する取り組みです。'],
+      ['AI基礎','AIの判断結果を業務で使う際に重要な姿勢は？',['結果を検証し、人間が必要に応じて判断する','AI結果を常に無条件で採用する','出力は一切保存しない','入力データは不要と考える'],0,'AIは誤る可能性があるため、重要判断では人間の確認や責任範囲の明確化が必要です。'],
+      ['AI基礎','AIに適した業務の特徴は？',['大量データや反復作業がある','毎回完全に異なる政治判断だけを行う','データが全く存在しない','目的が不明確である'],0,'分類、要約、予測、定型処理など、データと反復性がある業務はAI活用に向いています。'],
+      ['AI基礎','AIリテラシーとして不適切なものは？',['AIを万能で絶対に間違えないものと考える','限界を理解する','出力を検証する','利用ルールを守る'],0,'AIは便利ですが万能ではありません。誤情報、偏り、情報漏えいなどのリスクがあります。'],
+
+      ['生成AI','生成AIの代表的な用途は？',['文章や画像など新しいコンテンツを作る','水道管を修理する','CPUを物理的に製造する','電池を充電する'],0,'生成AIはテキスト、画像、音声、動画、コードなどの生成に使われます。'],
+      ['生成AI','LLMとは何の略として使われることが多い？',['Large Language Model','Local Logic Memory','Light Link Machine','Legal License Map'],0,'LLMは大規模言語モデルを意味し、自然言語の理解や生成に利用されます。'],
+      ['生成AI','ハルシネーションとは？',['AIが事実と異なる内容をもっともらしく出すこと','AIが必ず沈黙すること','画像だけを圧縮すること','パスワードを暗号化すること'],0,'生成AIは誤った情報を自然な文章で出すことがあるため、検証が必要です。'],
+      ['生成AI','生成AIの出力で必ず行うべきことは？',['重要情報の事実確認','すべて無断転載','確認せず契約書に使う','個人情報を大量入力する'],0,'生成AIの出力は下書きとして扱い、特に法務・医療・金融・契約では確認が重要です。'],
+      ['生成AI','生成AIに機密情報を入力するリスクは？',['情報漏えいや不適切な学習利用の可能性','画面が明るくなるだけ','回答速度が必ず上がる','著作権が自動消滅する'],0,'社外AIに機密情報を入力すると、管理外に情報が出るリスクがあります。'],
+      ['生成AI','RAGの目的に近いものは？',['外部文書を参照して回答精度を高める','AIを必ずオフライン化する','画像サイズを小さくする','マウス操作を禁止する'],0,'RAGは検索拡張生成で、社内文書や外部データを検索して回答に活用します。'],
+      ['生成AI','生成AIが得意な作業は？',['文章の要約やたたき台作成','物理的な配送作業','法律上の最終判断の代行','事実確認なしの公式発表'],0,'生成AIは下書き、要約、アイデア出し、分類、翻訳などに強みがあります。'],
+      ['生成AI','マルチモーダルAIとは？',['テキスト、画像、音声など複数種類の情報を扱うAI','メールだけを送るAI','一つの数字しか扱えないAI','必ず人型ロボットであるAI'],0,'マルチモーダルAIは複数のデータ形式を統合的に扱えるAIです。'],
+      ['生成AI','生成AI活用でプロンプトに入れると良いものは？',['目的、条件、出力形式','社外秘の顧客名簿','不要な長文だけ','曖昧な命令だけ'],0,'目的や制約、形式を明確にすると、出力品質が安定します。'],
+      ['生成AI','生成AIの社内導入で必要なものは？',['利用ルールと教育','全社員のPC廃棄','インターネット禁止','確認作業の完全廃止'],0,'便利さだけでなく、ルール整備、教育、監査、権限管理が必要です。'],
+
+      ['機械学習','教師あり学習とは？',['正解ラベル付きデータで学習する方法','正解なしでクラスタを探す方法','報酬だけで行動を学ぶ方法','学習を一切しない方法'],0,'教師あり学習は入力と正解のペアから分類や回帰を学習します。'],
+      ['機械学習','教師なし学習の例は？',['顧客を購買傾向でクラスタリングする','正解ラベル付き画像で犬猫分類する','ゲームで報酬最大化を学ぶ','文章を手入力で置換する'],0,'教師なし学習は正解ラベルなしでデータ構造やグループを見つけます。'],
+      ['機械学習','強化学習の特徴は？',['報酬を最大化する行動を学習する','正解ラベルだけで分類する','データを保存しない','必ず文章生成に使う'],0,'強化学習は試行錯誤を通じて、報酬が高くなる行動方針を学びます。'],
+      ['機械学習','過学習とは？',['訓練データに適合しすぎて未知データに弱い状態','全く学習していない状態','データが暗号化された状態','AIが人間になる状態'],0,'過学習は訓練データでは高精度でも、新しいデータで性能が落ちる状態です。'],
+      ['機械学習','汎化性能とは？',['未知データに対しても適切に予測できる性能','訓練データを削除する能力','画面を汎用化する力','プログラムを短くする技術'],0,'実運用では未知データに対する性能が重要です。'],
+      ['機械学習','分類問題の例は？',['メールを迷惑メールか通常メールに分ける','明日の売上金額を連続値で予測する','文章を装飾するだけ','画像を圧縮するだけ'],0,'分類はカテゴリを予測する問題です。迷惑メール判定などが代表例です。'],
+      ['機械学習','回帰問題の例は？',['売上金額を予測する','犬か猫か判定する','会員を3分類する','パスワードを変更する'],0,'回帰は連続値を予測する問題で、売上や需要予測などに使われます。'],
+      ['機械学習','学習データの品質が悪いと？',['モデルの予測品質も悪化しやすい','必ず精度が上がる','法律リスクがゼロになる','GPUが不要になる'],0,'AIの品質はデータ品質に大きく依存します。'],
+      ['機械学習','テストデータの役割は？',['学習済みモデルを未知データで評価する','学習データを増やすだけ','画面デザインを決める','個人情報を隠すだけ'],0,'テストデータはモデルの実力を評価するために使います。'],
+      ['機械学習','特徴量とは？',['モデルに入力する説明変数や属性','出力画面の色','AIの著作権表示','ネット回線速度'],0,'特徴量は予測に使う入力情報です。適切な特徴量設計は精度に影響します。'],
+
+      ['ディープラーニング','ディープラーニングの基本構造は？',['多層のニューラルネットワーク','紙の辞書','単一のif文のみ','表計算の罫線'],0,'ディープラーニングはニューラルネットワークを多層化して複雑な特徴を学習します。'],
+      ['ディープラーニング','ニューラルネットワークは何を模した考え方？',['脳の神経細胞のつながり','郵便番号制度','電車の路線図だけ','会計伝票'],0,'人工ニューラルネットワークは脳の神経細胞の構造に着想を得ています。'],
+      ['ディープラーニング','画像認識でよく使われた代表的構造は？',['CNN','SMTP','HTML','DNS'],0,'CNNは畳み込みニューラルネットワークで、画像認識に強みがあります。'],
+      ['ディープラーニング','自然言語処理で重要なモデル構造は？',['Transformer','Excel罫線','QRコード','USB'],0,'TransformerはLLMなど現代の自然言語処理で重要な構造です。'],
+      ['ディープラーニング','ディープラーニングに必要になりやすいものは？',['大量データと計算資源','紙の手帳だけ','電卓のみ','社印のみ'],0,'深層学習は多くの場合、大量データとGPUなどの計算資源を必要とします。'],
+      ['ディープラーニング','重みとは？',['入力の影響度を調整するパラメータ','ファイルの重さだけ','机の重量','法律文書の厚さ'],0,'ニューラルネットワークでは重みによって入力情報の影響度を調整します。'],
+      ['ディープラーニング','学習とはモデルの何を調整すること？',['パラメータ','社員番号','会社名','画面サイズだけ'],0,'学習ではデータに合うように重みなどのパラメータを更新します。'],
+      ['ディープラーニング','音声認識の活用例は？',['会議音声の文字起こし','水道工事','紙の裁断','机の組立'],0,'音声認識は議事録作成やコールセンター分析などに活用できます。'],
+      ['ディープラーニング','ディープラーニングの注意点は？',['判断根拠が分かりにくい場合がある','必ず説明可能である','データが不要である','計算資源を使わない'],0,'高性能な一方で、ブラックボックス性が問題になることがあります。'],
+      ['ディープラーニング','GPUが使われる理由は？',['並列計算に強いから','文字入力に強いから','紙を印刷するため','メール送信専用だから'],0,'GPUは大量の並列計算に強く、深層学習の学習処理でよく使われます。'],
+
+      ['データ活用','データ前処理の例は？',['欠損値の処理や形式統一','広告を配信するだけ','契約書に押印するだけ','会議室を予約するだけ'],0,'前処理では欠損、外れ値、重複、形式不統一などを整えます。'],
+      ['データ活用','欠損値とは？',['データが抜けている状態','データが多すぎる状態','画像が明るい状態','AIが停止する状態'],0,'欠損値は本来あるべき値が空白や未記録になっている状態です。'],
+      ['データ活用','外れ値とは？',['他の値と大きく異なる値','平均値と同じ値','必ず正しい値','ラベル名'],0,'外れ値は異常値の可能性があり、原因確認や処理方針が必要です。'],
+      ['データ活用','データ可視化の目的は？',['傾向や異常を把握しやすくする','データを必ず削除する','AIを停止する','著作権を移転する'],0,'グラフや表にすることで、意思決定に必要な傾向を把握しやすくなります。'],
+      ['データ活用','BIツールの用途は？',['データを集計・可視化し意思決定を支援する','CPUを冷却する','文章を暗号化するだけ','配送業者を選ぶ'],0,'BIツールは売上、在庫、広告効果などの可視化に活用されます。'],
+      ['データ活用','データ分析で最初に考えるべきことは？',['何を明らかにしたいか','グラフの色だけ','使うフォントだけ','机の配置'],0,'目的が曖昧だと、分析結果が意思決定につながりにくくなります。'],
+      ['データ活用','バイアスのあるデータを使うと？',['不公平な予測につながる可能性がある','必ず公平になる','学習が不要になる','データ量がゼロになる'],0,'偏ったデータは偏ったAI判断を生む可能性があります。'],
+      ['データ活用','構造化データの例は？',['表形式の売上データ','自由記述の長文だけ','音声ファイルだけ','写真だけ'],0,'構造化データは行と列で整理されたデータなど、扱いやすい形式のデータです。'],
+      ['データ活用','非構造化データの例は？',['画像、音声、自由記述テキスト','売上表の数値列のみ','商品コードだけ','日付列だけ'],0,'非構造化データは形式が固定されていないデータです。生成AI活用でも重要です。'],
+      ['データ活用','データドリブンとは？',['データに基づいて意思決定する考え方','直感だけで決めること','紙を使わないこと','会議を増やすこと'],0,'データドリブンは経験や勘だけでなく、データに基づき判断する姿勢です。'],
+
+      ['プロンプト','良いプロンプトの要素は？',['目的、条件、出力形式が明確','一言だけで常に十分','機密情報を多く含む','誤字だらけにする'],0,'AIに期待する役割、条件、制約、出力形式を示すと品質が上がります。'],
+      ['プロンプト','役割指定の例として適切なのは？',['あなたは優秀な営業企画担当です','こんにちはだけ','全部よろしく','早くして'],0,'役割を指定すると、回答の観点や語彙を誘導できます。'],
+      ['プロンプト','出力形式指定の効果は？',['表や箇条書きなど望む形で出しやすい','AIの電源が切れる','必ず著作権がなくなる','回答が禁止される'],0,'フォーマットを指定すると、実務で使いやすい出力になりやすいです。'],
+      ['プロンプト','Few-shot promptingとは？',['例をいくつか示して回答させる方法','質問をしない方法','AIを使わない方法','画像を削除する方法'],0,'入出力例を提示することで、AIが期待形式を把握しやすくなります。'],
+      ['プロンプト','プロンプト改善で有効なのは？',['出力を見て条件を追加し再指示する','失敗しても同じ文を連打する','機密情報を増やす','目的を消す'],0,'AI活用では一度で完成を狙うより、反復改善が効果的です。'],
+      ['プロンプト','曖昧な指示の問題点は？',['期待と異なる回答になりやすい','必ず最高品質になる','法的に有利になる','情報漏えいが防げる'],0,'曖昧な指示はAIが補完する範囲が広くなり、意図ズレが起きやすくなります。'],
+      ['プロンプト','制約条件として有効な例は？',['300字以内、初心者向け、箇条書きで','なんとなく良い感じ','全部完璧に','適当に'],0,'文字数、対象者、トーン、禁止事項などの制約は品質向上に役立ちます。'],
+      ['プロンプト','AIに社外秘情報を入れる前にすべきことは？',['社内ルールと利用環境を確認する','とりあえず全部貼る','SNSに投稿する','出力を公開する'],0,'機密情報や個人情報は、利用規約・社内規程・契約環境を確認して扱います。'],
+      ['プロンプト','プロンプトインジェクションとは？',['悪意ある指示でAIの挙動を乗っ取ろうとする攻撃','画像を高解像度にする技術','通常の誤字修正','電源障害'],0,'外部文書などに隠れた指示でAIに不適切動作をさせる攻撃です。'],
+      ['プロンプト','プロンプトの成果を高める考え方は？',['AIを部下に依頼するように具体的に伝える','何も説明しない','結論を禁止する','文脈を消す'],0,'目的や背景を丁寧に伝えるほど、AIは有用な回答を出しやすくなります。'],
+
+      ['AI倫理','AI倫理で重要な観点は？',['公平性、透明性、説明責任','速度だけ','色だけ','価格だけ'],0,'AI活用では公平性、透明性、説明責任、安全性などが重要です。'],
+      ['AI倫理','公平性の観点で避けるべきことは？',['特定属性に不利な判断を助長すること','検証を行うこと','データの偏りを確認すること','説明を用意すること'],0,'偏ったデータや設計は不公平な判断につながる可能性があります。'],
+      ['AI倫理','説明責任とは？',['AI利用の判断や結果について説明できる責任','AIに全責任を押し付けること','ログを残さないこと','利用者を隠すこと'],0,'AIを使う組織や人が、判断プロセスや責任範囲を説明できることが重要です。'],
+      ['AI倫理','透明性を高める方法は？',['AI利用箇所や判断根拠を分かる範囲で示す','AI利用を必ず隠す','ログを削除する','説明を禁止する'],0,'AIをどこで使い、どのように判断しているかを明示することが信頼につながります。'],
+      ['AI倫理','人間中心のAI活用とは？',['人間の価値判断や安全を重視してAIを使う','AIに全権限を渡す','人間を業務から完全排除する','説明を不要にする'],0,'AIは人間の判断や能力を支援する道具として設計・運用することが望まれます。'],
+      ['AI倫理','AIの偏見を減らす取り組みは？',['データの偏り確認と評価','確認をしない','特定データだけを使う','結果を隠す'],0,'データや評価指標の偏りを確認し、改善する必要があります。'],
+      ['AI倫理','AI利用を顧客に明示すべき場面は？',['顧客対応をAIが行う場合など','社内メモだけの場合は常に不要とは限らない','どんな場合も隠すべき','広告では絶対禁止'],0,'顧客体験や権利に影響する場合、AI利用の明示が信頼や規制対応に関係します。'],
+      ['AI倫理','AI倫理を無視した場合のリスクは？',['信用低下や法的・社会的問題','必ず売上が上がる','精度が無限に上がる','情報管理が不要になる'],0,'倫理軽視は炎上、差別、法令違反、ブランド毀損につながります。'],
+      ['AI倫理','AI判断を人事評価に使う際の注意は？',['不公平性や説明可能性を慎重に確認する','AI結果だけで即決する','本人に説明しない','データ品質を見ない'],0,'人生に大きな影響を与える領域では、説明責任と人間の関与が特に重要です。'],
+      ['AI倫理','AI活用ガイドラインの目的は？',['安全で適切な利用を促す','AI利用を完全に禁止するだけ','全責任を利用者に押し付ける','データを公開する'],0,'ガイドラインは利用範囲、禁止事項、確認手順などを定め、リスクを抑えます。'],
+
+      ['著作権・個人情報','個人情報をAIに入力する際に必要な視点は？',['利用目的、同意、社内ルール、契約環境','入力すれば必ず匿名化される','無料AIなら安全','長文なら問題ない'],0,'個人情報は法令や社内規程に従い、入力可否を確認する必要があります。'],
+      ['著作権・個人情報','著作権で注意すべきことは？',['生成物や学習元、利用条件を確認する','AI生成なら必ず自由利用できる','他人の作品をそのまま使ってよい','出典確認は不要'],0,'生成AIの出力でも、既存著作物との類似やサービス規約を確認します。'],
+      ['著作権・個人情報','匿名加工の目的は？',['個人を識別しにくくしてリスクを下げる','データを必ず消す','著作権を作る','AIを高速化するだけ'],0,'匿名化や仮名化は個人情報リスクを下げるための処理です。'],
+      ['著作権・個人情報','社外秘資料を生成AIで要約したい場合は？',['会社が認めた環境か確認する','無料サービスに丸ごと貼る','SNSに貼って相談する','確認せず顧客に送る'],0,'社外秘情報は入力先の管理状態や契約条件を確認してから扱います。'],
+      ['著作権・個人情報','個人情報保護で重要な原則は？',['必要最小限の利用','目的外利用の推奨','無断共有','永久保存義務'],0,'個人情報は目的を明確にし、必要な範囲で扱うことが重要です。'],
+      ['著作権・個人情報','AI生成画像を広告に使う際に確認すべきことは？',['権利、規約、類似性、表示義務','画像サイズだけ','背景色だけ','ファイル名だけ'],0,'商用利用ではサービス規約、著作権、肖像権、商標などを確認します。'],
+      ['著作権・個人情報','肖像権に関係するのは？',['人物の顔写真や容貌の利用','売上表の合計','在庫数','商品コード'],0,'人物画像を使う場合は肖像権やパブリシティ権にも注意が必要です。'],
+      ['著作権・個人情報','著作物の無断利用リスクは？',['権利侵害になる可能性','必ず合法','AIなら免責','社内なら常に自由'],0,'AIを使っていても、既存著作物の扱いには注意が必要です。'],
+      ['著作権・個人情報','データの目的外利用とは？',['収集時と異なる目的で無断利用すること','目的を明示して利用すること','必要最小限にすること','同意を得ること'],0,'個人情報は原則として、本人に示した目的の範囲で利用します。'],
+      ['著作権・個人情報','生成AIの利用規約で確認することは？',['入力データの扱いと商用利用条件','画面の色だけ','会社の所在地だけ','キーボード配列だけ'],0,'規約には入力データの学習利用、保存、商用利用可否などが書かれています。'],
+
+      ['セキュリティ','プロンプトインジェクション対策として有効なのは？',['外部入力を信頼しすぎず制御する','全指示を無条件実行する','ログを消す','権限を全開放する'],0,'外部文書やユーザー入力に含まれる悪意ある指示をそのまま実行しない設計が必要です。'],
+      ['セキュリティ','情報漏えい対策として重要なのは？',['入力ルールとアクセス権限管理','パスワード共有','全データ公開','ログ管理禁止'],0,'機密情報の入力制限、権限管理、ログ監査などが重要です。'],
+      ['セキュリティ','アクセス権限の原則は？',['必要最小限の権限を付与する','全員に管理者権限を与える','権限確認をしない','退職者権限を残す'],0,'最小権限の原則により、被害範囲を抑えられます。'],
+      ['セキュリティ','AIチャットログで注意すべきことは？',['機密情報や個人情報が残る可能性','必ず即時消える','法的に無関係','誰も見られない'],0,'ログ保存や閲覧権限、学習利用の有無を確認する必要があります。'],
+      ['セキュリティ','フィッシング対策でAIが悪用される例は？',['自然な詐欺メール作成','水道水の浄化','印刷速度向上','在庫棚卸し'],0,'生成AIにより詐欺メールが自然で見分けにくくなるリスクがあります。'],
+      ['セキュリティ','AI導入時のセキュリティレビュー対象は？',['データ送信先、権限、ログ、契約','椅子の高さだけ','昼食メニュー','名刺デザインだけ'],0,'導入時は技術・契約・運用面のセキュリティ確認が必要です。'],
+      ['セキュリティ','機密データを扱うAI環境として望ましいのは？',['会社が管理・契約した安全な環境','個人の無料アカウントのみ','公開掲示板','誰でも見られる共有リンク'],0,'業務データは会社が管理する環境で扱うのが原則です。'],
+      ['セキュリティ','ログ監査の目的は？',['不正利用や事故の追跡','データを隠す','AIを停止する','画面を飾る'],0,'ログは問題発生時の原因追跡や不正利用検知に役立ちます。'],
+      ['セキュリティ','シャドーAIとは？',['会社非公認のAIを業務利用すること','AIの影を描く技術','公式AIの別名','画像加工の一種'],0,'シャドーAIは管理外のAI利用で情報漏えいなどのリスクがあります。'],
+      ['セキュリティ','AI利用ルールで禁止されやすい行為は？',['機密情報を無許可で外部AIに入力する','公開情報を要約する','社内承認済みAIを使う','出力を確認する'],0,'無許可の機密入力は情報漏えいリスクが高いため、多くの組織で禁止・制限されます。'],
+
+      ['ビジネス活用','AIで営業業務を支援する例は？',['商談メモ要約や提案文作成','椅子の組立','電気工事','現金輸送'],0,'営業では議事録、提案書、メール文、顧客分析などにAIを活用できます。'],
+      ['ビジネス活用','AI導入効果の測定指標は？',['削減時間、品質、売上、コスト','社員の靴の色','会議室の広さ','PC壁紙'],0,'業務改善ではKPIを設定し、導入前後で効果測定します。'],
+      ['ビジネス活用','AI導入で避けるべき進め方は？',['目的なく流行だけで導入する','小さく試す','効果測定する','リスク確認する'],0,'流行だけで導入すると、費用対効果が不明確になりやすいです。'],
+      ['ビジネス活用','カスタマーサポートでのAI活用例は？',['FAQ回答や問い合わせ分類','倉庫の床掃除だけ','商品の物理梱包','現金管理'],0,'問い合わせ分類、回答案作成、FAQ改善などにAIが使えます。'],
+      ['ビジネス活用','AIとRPAの組み合わせで期待できることは？',['判断支援と定型処理の自動化','紙の厚みを増やす','通信を遮断する','商品を自動で製造する'],0,'AIが分類・判断し、RPAがシステム操作を自動化する連携が可能です。'],
+      ['ビジネス活用','生成AIで企画業務を支援する例は？',['アイデア出しや市場調査のたたき台作成','契約の最終承認','監査の完全代行','法的責任の移転'],0,'企画では壁打ち、構成案、リサーチ観点出しなどに使えます。'],
+      ['ビジネス活用','AI導入における現場巻き込みの重要性は？',['実業務に合う運用にするため','現場を無視するため','教育を不要にするため','費用を隠すため'],0,'現場の課題や制約を反映しないAI導入は定着しにくいです。'],
+      ['ビジネス活用','ROIとは？',['投資対効果','画像解像度','AIの人格','通信規格'],0,'ROIは投資に対してどれだけ利益や効果があったかを見る指標です。'],
+      ['ビジネス活用','AI活用で人間が担うべき役割は？',['目的設定、確認、判断、責任','全作業放棄','出力の無条件採用','ルール無視'],0,'AIは支援ツールであり、最終判断や責任は人間・組織が担います。'],
+      ['ビジネス活用','AI導入の成功に必要なものは？',['課題設定、データ、運用設計、教育','ツール契約だけ','広告だけ','会議名だけ'],0,'AI導入はツールだけでなく、業務設計と人材育成が重要です。'],
+
+      ['業務改善','業務改善で最初に行うべきことは？',['現状業務の棚卸し','AIツールを無作為に契約','全業務を即自動化','ルールを消す'],0,'まず現状業務を可視化し、ボトルネックや自動化候補を探します。'],
+      ['業務改善','AIに向く定型業務は？',['メール文作成、要約、分類、FAQ案作成','最終経営判断','法的責任の引受','物理配送'],0,'言語処理や分類、要約などは生成AIが支援しやすい領域です。'],
+      ['業務改善','業務フロー可視化の目的は？',['ムダや重複、属人化を見つける','業務を隠す','手順を複雑化する','会議を増やす'],0,'業務の流れを見える化すると、改善ポイントを特定しやすくなります。'],
+      ['業務改善','属人化とは？',['特定の人しか業務を進められない状態','全員が同じ手順を知る状態','マニュアルが整備された状態','AIが公開されている状態'],0,'属人化は引き継ぎや品質安定のリスクになります。'],
+      ['業務改善','AIでマニュアル作成を支援する方法は？',['手順メモから構成化・文章化する','現場確認を完全に不要にする','ルールを削除する','画像を必ず消す'],0,'AIは下書き作成に有効ですが、現場確認とレビューは必要です。'],
+      ['業務改善','業務改善の効果測定に使える指標は？',['処理時間、ミス件数、対応件数','机の色','社員の髪型','昼食代だけ'],0,'改善前後の処理時間や品質指標を比較すると効果が見えます。'],
+      ['業務改善','ナレッジ共有でAIが役立つ場面は？',['社内FAQや文書検索','書類を物理配送','会議室清掃','備品購入のみ'],0,'社内文書検索やFAQ生成により、問い合わせ対応や引き継ぎを効率化できます。'],
+      ['業務改善','自動化すべきでない業務は？',['人の判断や倫理判断が重大なものを無検証で自動化','定型的な転記','FAQ案作成','要約作成'],0,'重大な判断は人間の確認を残すべきです。'],
+      ['業務改善','業務改善で小さく始めるメリットは？',['失敗リスクを抑えて学習できる','必ず全社展開が不要になる','検証が不要になる','費用が無限になる'],0,'小規模に試すことで課題を早く見つけ、改善してから展開できます。'],
+      ['業務改善','AI活用教育の目的は？',['安全で効果的に使える人を増やす','利用を隠す','全員を開発者にする','確認作業を消す'],0,'社員がAIの得意不得意やリスクを理解することで、活用効果が高まります。'],
+
+      ['EC・マーケティング活用','ECで生成AIが支援できる作業は？',['商品説明文や広告文の作成','商品の物理配送','倉庫建設','決済代行会社の設立'],0,'商品説明、広告コピー、FAQ、レビュー分析などで活用できます。'],
+      ['EC・マーケティング活用','レビュー分析でAIができることは？',['顧客の不満や評価ポイントの要約','レビューを法的に無効化','配送を直接実行','在庫を物理移動'],0,'レビューを分類・要約し、改善点や訴求ポイントを抽出できます。'],
+      ['EC・マーケティング活用','広告文作成で重要なことは？',['ターゲットと訴求軸を明確にする','誰向けか隠す','商品特徴を書かない','確認せず出稿する'],0,'ターゲット、ベネフィット、禁止表現を明確にすると品質が上がります。'],
+      ['EC・マーケティング活用','A/Bテストとは？',['複数案を比較して効果を検証する方法','全案を同時に削除する方法','AIの学習禁止','商品を値上げするだけ'],0,'A/Bテストは広告文やLPなど複数パターンの成果を比較します。'],
+      ['EC・マーケティング活用','ECで個人情報を扱う際の注意は？',['顧客データの利用目的と保護','自由に外部AIへ貼る','購入履歴を公開する','同意を無視する'],0,'顧客情報は法令・規約・社内ルールに従い慎重に扱います。'],
+      ['EC・マーケティング活用','商品説明でAI出力をそのまま使うリスクは？',['誇大表現や事実誤認が混じる可能性','必ず売れる','法務確認が不要','在庫が増える'],0,'AIが事実と異なる仕様や効果を記載する可能性があるため確認が必要です。'],
+      ['EC・マーケティング活用','ペルソナ設計とは？',['想定顧客像を具体化すること','商品の梱包方法','倉庫の場所決め','決済手数料の計算のみ'],0,'ペルソナを明確にすると、訴求やコンテンツの方向性を決めやすくなります。'],
+      ['EC・マーケティング活用','SEO記事作成でAIを使う際の注意は？',['検索意図、正確性、独自性を確認する','AI文を大量投稿すれば必ず上位','出典確認不要','読者を考えない'],0,'AIは下書きに有効ですが、検索意図や正確性、独自性の確認が必要です。'],
+      ['EC・マーケティング活用','Makuake等のクラウドファンディングでAIが使える場面は？',['ストーリー案、FAQ、訴求整理','支援金の自動保証','商品の自動製造','法的審査の完全代行'],0,'プロジェクト文面、訴求、FAQ、ターゲット整理などに活用できます。'],
+      ['EC・マーケティング活用','マーケティングで生成AIを使う際の最終確認者は？',['人間の担当者','AI自身のみ','競合企業','匿名掲示板'],0,'法令、ブランド、事実確認の観点から人間のレビューが必要です。']
+    ];
+
+    const questions = bank.map((x, i) => ({ id:i+1, category:x[0], question:x[1], choices:x[2], answer:x[3], explanation:x[4] }));
+    const categories = [...new Set(questions.map(q => q.category))];
+    let currentCategory = categories[0];
+    let currentIndex = 0;
+    const results = JSON.parse(localStorage.getItem('aiPassportQuestResults') || '{}');
+
+    function saveResults(){ localStorage.setItem('aiPassportQuestResults', JSON.stringify(results)); }
+
+    function renderLessons(){
+      document.getElementById('lessonGrid').innerHTML = lessons.map(l => `
+        <article class="lesson-card">
+          <div class="tag">${l.cat}</div>
+          <h3>${l.cat}</h3>
+          <ul>${l.points.map(p => `<li>${p}</li>`).join('')}</ul>
+        </article>`).join('');
+    }
+
+    function renderCategories(){
+      const el = document.getElementById('categoryList');
+      el.innerHTML = categories.map(c => {
+        const count = questions.filter(q => q.category === c).length;
+        return `<button class="category-btn ${c === currentCategory ? 'active' : ''}" onclick="selectCategory('${c}')"><span>${c}</span><span>${count}</span></button>`;
+      }).join('');
+    }
+
+    function selectCategory(cat){ currentCategory = cat; currentIndex = 0; renderCategories(); renderQuestion(); }
+
+    function renderQuestion(){
+      const list = questions.filter(q => q.category === currentCategory);
+      const q = list[currentIndex];
+      document.getElementById('categoryLabel').textContent = currentCategory;
+      document.getElementById('questionNumber').textContent = `${currentIndex + 1} / ${list.length}`;
+      document.getElementById('progressBar').style.width = `${((currentIndex + 1) / list.length) * 100}%`;
+      document.getElementById('questionText').textContent = q.question;
+      document.getElementById('explanation').className = 'explanation';
+      document.getElementById('explanation').textContent = q.explanation;
+      const selected = results[q.id]?.selected;
+      document.getElementById('choices').innerHTML = q.choices.map((choice, idx) => {
+        let cls = 'choice';
+        if (selected !== undefined) {
+          if (idx === q.answer) cls += ' correct';
+          else if (idx === selected) cls += ' wrong';
+        }
+        return `<button class="${cls}" onclick="answerQuestion(${q.id}, ${idx})">${String.fromCharCode(65+idx)}. ${choice}</button>`;
+      }).join('');
+      if (selected !== undefined) document.getElementById('explanation').classList.add('show');
+      updateStats();
+    }
+
+    function answerQuestion(id, selected){
+      const q = questions.find(x => x.id === id);
+      results[id] = { selected, correct: selected === q.answer };
+      saveResults();
+      renderQuestion();
+    }
+
+    document.getElementById('prevBtn').onclick = () => {
+      const list = questions.filter(q => q.category === currentCategory);
+      currentIndex = (currentIndex - 1 + list.length) % list.length;
+      renderQuestion();
+    };
+    document.getElementById('nextBtn').onclick = () => {
+      const list = questions.filter(q => q.category === currentCategory);
+      currentIndex = (currentIndex + 1) % list.length;
+      renderQuestion();
+    };
+
+    function updateStats(){
+      const answered = Object.keys(results).length;
+      const correct = Object.values(results).filter(r => r.correct).length;
+      document.getElementById('totalQuestions').textContent = questions.length;
+      document.getElementById('answeredCount').textContent = answered;
+      document.getElementById('correctCount').textContent = correct;
+      document.getElementById('rate').textContent = answered ? Math.round(correct / answered * 100) + '%' : '0%';
+    }
+
+    renderLessons();
+    renderCategories();
+    renderQuestion();
+  </script>
+</body>
+</html>
