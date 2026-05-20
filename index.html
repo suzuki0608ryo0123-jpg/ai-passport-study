@@ -1667,6 +1667,8 @@ function answerQuestion(id, selected) {
   results[id] = { selected: selected, correct: wasCorrect };
   saveResults();
   renderQuestion();
+  var card = document.querySelector('.quiz-card');
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
   var newCorrect = Object.values(results).filter(function(r){ return r.correct; }).length;
   if (wasCorrect && newCorrect > prevCorrect) renderMonster(newCorrect, true);
   if (wasCorrect) checkDungeonClear(q.category);
