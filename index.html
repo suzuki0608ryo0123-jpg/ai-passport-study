@@ -244,37 +244,95 @@
     .quiz-layout { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: start; }
 
     /* ── Sidebar ── */
-    .sidebar .card { padding: 20px; }
+    .sidebar {
+      position: sticky;
+      top: 72px;
+      max-height: calc(100vh - 90px);
+    }
+    .sidebar .card {
+      padding: 20px;
+      max-height: calc(100vh - 90px);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .sidebar .card::-webkit-scrollbar { width: 4px; }
+    .sidebar .card::-webkit-scrollbar-track { background: transparent; }
+    .sidebar .card::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 99px; }
     .sidebar h2 { font-size: 17px; font-weight: 800; margin-bottom: 12px; }
-    .cat-list { display: grid; gap: 6px; }
-    .cat-btn {
+    /* ── Dungeon List ── */
+    .cat-list { display: grid; gap: 8px; }
+    .dungeon-btn {
       width: 100%;
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 36px 1fr auto;
       align-items: center;
-      padding: 10px 14px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.05);
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
       border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
+      color: var(--text);
+      font-family: inherit;
       cursor: pointer;
       transition: all 0.18s;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+    .dungeon-btn::before {
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(135deg, rgba(99,102,241,0.0), rgba(34,211,238,0.0));
+      transition: all 0.2s;
+    }
+    .dungeon-btn:hover { border-color: rgba(99,102,241,0.4); }
+    .dungeon-btn:hover::before { background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(34,211,238,0.06)); }
+    .dungeon-btn.active {
+      border-color: rgba(99,102,241,0.7);
+      box-shadow: 0 0 16px rgba(99,102,241,0.2);
+    }
+    .dungeon-btn.active::before { background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(34,211,238,0.1)); }
+    .dungeon-btn.cleared { border-color: rgba(52,211,153,0.5); }
+    .dungeon-btn.cleared::before { background: linear-gradient(135deg, rgba(52,211,153,0.08), transparent); }
+
+    .dungeon-icon {
+      font-size: 22px;
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.07);
+      flex-shrink: 0;
+    }
+    .dungeon-info { min-width: 0; }
+    .dungeon-name { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dungeon-sub  { font-size: 10px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dungeon-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+    .dungeon-progress-wrap { width: 48px; height: 5px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
+    .dungeon-progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--cyan)); border-radius: 999px; transition: width 0.3s; }
+    .dungeon-score { font-size: 10px; color: var(--muted); font-family: 'Space Grotesk', sans-serif; }
+    .dungeon-crown { font-size: 13px; }
+
+    /* ── カテゴリリセットボタン ── */
+    .dungeon-reset-btn {
+      display: none;
+      width: 100%;
+      margin-top: 4px;
+      padding: 7px;
+      border-radius: 10px;
+      border: 1px solid rgba(248,113,113,0.3);
+      background: rgba(248,113,113,0.08);
+      color: #f87171;
       font-family: inherit;
-    }
-    .cat-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-    .cat-btn.active {
-      background: linear-gradient(135deg, rgba(99,102,241,0.85), rgba(34,211,238,0.5));
-      border-color: rgba(99,102,241,0.5);
-      color: #fff;
-    }
-    .cat-count {
-      background: rgba(255,255,255,0.12);
-      border-radius: 999px;
-      padding: 2px 8px;
       font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
     }
+    .dungeon-reset-btn:hover { background: rgba(248,113,113,0.2); }
+    .dungeon-reset-btn.show { display: block; }
 
     /* ── Mode buttons ── */
     .mode-strip {
@@ -572,6 +630,73 @@
       animation: monFloat 3s ease-in-out infinite;
     }
 
+    /* ── Dungeon Clear Overlay ── */
+    #dungeonClearOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0;
+    }
+    #dungeonClearOverlay.show { display: flex; }
+    .dungeon-clear-popup {
+      background: linear-gradient(135deg, rgba(20,26,48,0.98) 0%, rgba(14,18,34,0.98) 100%);
+      border: 1px solid rgba(251,191,36,0.6);
+      border-radius: 28px;
+      padding: 40px 44px;
+      text-align: center;
+      box-shadow: 0 0 100px rgba(251,191,36,0.3), 0 0 40px rgba(251,191,36,0.15);
+      animation: clearPopIn 0.5s cubic-bezier(.4,0,.2,1);
+      max-width: 380px;
+      width: 90%;
+      position: relative;
+      overflow: hidden;
+    }
+    @keyframes clearPopIn {
+      from { transform: scale(0.6) translateY(40px); opacity: 0; }
+      to   { transform: scale(1)   translateY(0);    opacity: 1; }
+    }
+    .dungeon-clear-crown {
+      font-size: 72px;
+      display: block;
+      animation: crownBounce 0.8s cubic-bezier(.4,0,.2,1) 0.2s both;
+      filter: drop-shadow(0 0 20px rgba(251,191,36,0.8));
+    }
+    @keyframes crownBounce {
+      0%   { transform: translateY(-60px) scale(0.5); opacity: 0; }
+      60%  { transform: translateY(10px)  scale(1.15); opacity: 1; }
+      80%  { transform: translateY(-6px)  scale(0.95); }
+      100% { transform: translateY(0)     scale(1); opacity: 1; }
+    }
+    .dungeon-clear-popup h2 {
+      font-size: 26px;
+      color: var(--amber);
+      margin: 14px 0 6px;
+      text-shadow: 0 0 20px rgba(251,191,36,0.5);
+    }
+    .dungeon-clear-popup .clear-dungeon-name {
+      font-size: 18px;
+      color: var(--text);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .dungeon-clear-popup p {
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+    .confetti-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 900px) {
       .hero { grid-template-columns: 1fr; }
@@ -672,7 +797,7 @@
     <div class="quiz-layout">
       <aside class="sidebar">
         <div class="card">
-          <h2>📂 カテゴリー</h2>
+          <h2>🗺️ ダンジョン選択</h2>
           <div class="cat-list" id="categoryList"></div>
         </div>
       </aside>
@@ -743,10 +868,18 @@
   </div>
 </div>
 
+<canvas class="confetti-canvas" id="confettiCanvas"></canvas>
+<div id="dungeonClearOverlay">
+  <div class="dungeon-clear-popup">
+    <span class="dungeon-clear-crown">👑</span>
+    <h2>ダンジョン制覇！</h2>
+    <div class="clear-dungeon-name" id="clearDungeonName"></div>
+    <p id="clearDungeonMsg">全問正解で完全クリア！<br>あなたはこのダンジョンの真の勇者だ！</p>
+    <button class="btn btn-primary" style="margin-top:4px;width:100%;justify-content:center;" onclick="closeDungeonClear()">つづける →</button>
+  </div>
+</div>
+
 <script>
-/* =====================================================
-   DATA
-   ===================================================== */
 const lessons = [
   { cat:"AI基礎", points:["AIは「探索・推論・認識・予測・生成」をコンピュータで実現する広義の技術領域。記号処理AI、機械学習、深層学習、生成AIを階層的に理解する。","弱いAI（Narrow AI）は特定タスク特化、強いAI（AGI）は汎用知能を指す。現在の実用AIはほぼ弱いAI。","AI導入では課題定義、業務要件、データ要件、KPI、リスク、運用設計を分けて考える。","PoC、MVP、スケール展開、MLOps/LLMOpsという流れで、実証から運用までを管理する。","AIリテラシーでは、利便性だけでなく限界、誤答、バイアス、説明責任、ガバナンスまで理解する。"] },
   { cat:"生成AI", points:["生成AIは確率的にコンテンツを生成するモデル群。テキスト生成、画像生成、音声合成、コード生成、動画生成が代表例。","LLMはトークン列の次トークン予測を中核に、Transformer、Attention、事前学習、ファインチューニング、RLHFなどで性能を高める。","ハルシネーションは事実誤認を自然文で出す現象。RAG、出典提示、ファクトチェック、Human-in-the-loopで抑制する。","RAGはRetrieval-Augmented Generationの略。ベクトル検索、埋め込み、チャンク分割、リランキング、コンテキスト注入が重要。","業務利用では入力データの学習利用、ログ保存、権限、監査、機密情報の取り扱いを確認する。"] },
@@ -762,7 +895,6 @@ const lessons = [
   { cat:"EC・マーケティング活用", points:["ECでは商品説明、広告コピー、レビュー分析、FAQ、SEO記事、LP改善、メルマガ作成に生成AIを使える。","マーケティングではペルソナ、カスタマージャーニー、訴求軸、ベネフィット、USP、CVRを意識する。","広告運用ではA/Bテスト、CTR、CVR、CPA、ROAS、LTVなどの指標で評価する。","レビューや問い合わせのテキストマイニングにより、VOC分析、商品改善、FAQ改善ができる。","Makuakeなどのクラウドファンディングではストーリー設計、リターン訴求、FAQ、リスク説明の品質が重要。"] }
 ];
 
-/* 問題バンク：[カテゴリ, 問題文, [選択肢A,B,C,D], 正解index(0-3), 解説] */
 const bank = [
   ["AI基礎","AIの説明として最も適切なものは？",["表計算だけを自動化する技術","人間の知的活動をコンピュータで模倣・支援する技術","インターネット回線を高速化する技術","画像を必ず生成する技術"],1,"AIは推論、認識、分類、生成などの知的活動をコンピュータで実現・支援する技術領域です。"],
   ["AI基礎","弱いAIの説明として正しいものは？",["特定の目的やタスクに特化したAI","人間と同じ意識を持つAI","必ずロボットの形をしたAI","ネットに接続できないAI"],0,"現在実用化されている多くのAIは、翻訳や画像認識など特定タスクに特化した弱いAIです。"],
@@ -1066,205 +1198,6 @@ const bank = [
   ["EC・マーケティング活用","「オムニチャネル戦略」にAIが貢献する方法は？",["チャネルを削減する", "店舗・EC・SNS・アプリのデータを統合し一貫した顧客体験を提供する", "データを分離する", "在庫を増やすだけ"],1,"AIによりオンラインとオフラインの顧客データを統合しシームレスな体験を実現できます。"]
 ];
 
-/* =====================================================
-   SHUFFLE HELPER (Fisher-Yates)
-   ===================================================== */
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-/* =====================================================
-   BUILD QUESTIONS
-   ===================================================== */
-const TARGET = 300;
-const questions = [];
-for (let i = 0; i < TARGET; i++) {
-  const src = bank[i % bank.length];
-  const suffix = '';
-
-  /* ── ここが修正ポイント ──
-     選択肢をシャッフルするが、シャッフル後のインデックスを正解として保持する。
-     元の正解テキストを基準に「どこに移動したか」を探す。 */
-  const origChoices = src[2];
-  const origAnswer  = src[3];
-  const correctText = origChoices[origAnswer];
-
-  const shuffled = shuffle(origChoices);
-  const newAnswer = shuffled.indexOf(correctText);
-
-  questions.push({
-    id: i + 1,
-    category: src[0],
-    question: src[1],
-    choices: shuffled,
-    answer: newAnswer,
-    explanation: src[4]
-  });
-}
-
-/* =====================================================
-   STATE
-   ===================================================== */
-const categories = [...new Set(questions.map(q => q.category))];
-let currentCategory = categories[0];
-let currentIndex    = 0;
-let currentMode     = 'normal'; // 'normal' | 'random' | 'retry'
-let displayList     = [];       // questions shown in current mode/category
-
-const results = JSON.parse(localStorage.getItem('aiPassportQuestResults') || '{}');
-function saveResults() { localStorage.setItem('aiPassportQuestResults', JSON.stringify(results)); }
-
-/* =====================================================
-   BUILD DISPLAY LIST
-   ===================================================== */
-function buildList() {
-  let base = questions.filter(q => q.category === currentCategory);
-  if (currentMode === 'retry') {
-    base = base.filter(q => results[q.id] && !results[q.id].correct);
-  }
-  if (currentMode === 'random') {
-    base = shuffle(base);
-  }
-  displayList = base;
-}
-
-/* =====================================================
-   RENDER
-   ===================================================== */
-function renderLessons() {
-  document.getElementById('lessonGrid').innerHTML = lessons.map(l => `
-    <article class="lesson-card">
-      <div class="lesson-cat">${l.cat}</div>
-      <h3>${l.cat}</h3>
-      <ul>${l.points.map(p => `<li>${p}</li>`).join('')}</ul>
-    </article>`).join('');
-}
-
-function renderCategories() {
-  document.getElementById('categoryList').innerHTML = categories.map(c => {
-    const total   = questions.filter(q => q.category === c).length;
-    const wrong   = questions.filter(q => q.category === c && results[q.id] && !results[q.id].correct).length;
-    const badge   = currentMode === 'retry' ? `${wrong}問` : `${total}問`;
-    return `<button class="cat-btn ${c === currentCategory ? 'active' : ''}"
-      onclick="selectCategory('${c}')">${c}<span class="cat-count">${badge}</span></button>`;
-  }).join('');
-}
-
-function renderQuestion() {
-  buildList();
-  renderCategories();
-
-  const list = displayList;
-
-  // モードラベル
-  const modeNames = { normal:'通常', random:'🎲 ランダム', retry:'⚡ 復習' };
-  document.getElementById('modeLabel').textContent = modeNames[currentMode];
-  document.getElementById('categoryLabel').textContent = currentCategory;
-
-  if (list.length === 0) {
-    document.getElementById('quizContent').innerHTML = `
-      <div class="empty-state">
-        <div class="big">🎉</div>
-        <p>このカテゴリに間違えた問題がありません！<br>全問正解です。</p>
-      </div>`;
-    document.getElementById('progressBar').style.width = '100%';
-    document.getElementById('questionNumber').textContent = '0 / 0';
-    return;
-  }
-
-  // インデックス補正
-  if (currentIndex >= list.length) currentIndex = 0;
-  const q = list[currentIndex];
-
-  document.getElementById('questionNumber').textContent = `${currentIndex + 1} / ${list.length}`;
-  document.getElementById('progressBar').style.width = `${((currentIndex + 1) / list.length) * 100}%`;
-
-  const answered = results[q.id];
-
-  document.getElementById('quizContent').innerHTML = `
-    <div class="question-text">${q.question}</div>
-    <div class="choices" id="choices">
-      ${q.choices.map((choice, idx) => {
-        let cls = 'choice-btn';
-        if (answered !== undefined) {
-          if (idx === q.answer)         cls += ' correct';
-          else if (idx === answered.selected) cls += ' wrong';
-        }
-        return `<button class="${cls}" onclick="answerQuestion(${q.id},${idx})" ${answered !== undefined ? 'disabled' : ''}>
-          <span class="choice-letter">${String.fromCharCode(65+idx)}</span>
-          ${choice}
-        </button>`;
-      }).join('')}
-    </div>
-    <div class="explanation ${answered !== undefined ? 'show' : ''}" id="explanation">
-      <strong>解説：</strong> ${q.explanation}
-    </div>`;
-
-  updateStats();
-}
-
-function answerQuestion(id, selected) {
-  const q = questions.find(x => x.id === id);
-  const wasCorrect = selected === q.answer;
-  const prevCorrect = Object.values(results).filter(r => r.correct).length;
-  results[id] = { selected, correct: wasCorrect };
-  saveResults();
-  renderQuestion();
-  const newCorrect = Object.values(results).filter(r => r.correct).length;
-  if (wasCorrect && newCorrect > prevCorrect) renderMonster(newCorrect, true);
-}
-
-/* =====================================================
-   MODE & NAVIGATION
-   ===================================================== */
-function setMode(mode) {
-  currentMode  = mode;
-  currentIndex = 0;
-  // ボタンのアクティブスタイル
-  ['btnNormal','btnRandom','btnRetry'].forEach(id => {
-    document.getElementById(id).classList.remove('btn-primary');
-    document.getElementById(id).classList.add('btn-ghost');
-  });
-  const map = { normal:'btnNormal', random:'btnRandom', retry:'btnRetry' };
-  const btn = document.getElementById(map[mode]);
-  btn.classList.remove('btn-ghost');
-  btn.classList.add('btn-primary');
-  renderQuestion();
-}
-
-function selectCategory(cat) {
-  currentCategory = cat;
-  currentIndex    = 0;
-  renderQuestion();
-}
-
-document.getElementById('prevBtn').onclick = () => {
-  currentIndex = (currentIndex - 1 + Math.max(displayList.length, 1)) % Math.max(displayList.length, 1);
-  renderQuestion();
-};
-document.getElementById('nextBtn').onclick = () => {
-  currentIndex = (currentIndex + 1) % Math.max(displayList.length, 1);
-  renderQuestion();
-};
-
-/* =====================================================
-   STATS
-   ===================================================== */
-function updateStats() {
-  const answered = Object.keys(results).length;
-  const correct  = Object.values(results).filter(r => r.correct).length;
-  document.getElementById('totalQuestions').textContent = questions.length;
-  document.getElementById('answeredCount').textContent  = answered;
-  document.getElementById('correctCount').textContent   = correct;
-  document.getElementById('rate').textContent = answered ? Math.round(correct / answered * 100) + '%' : '0%';
-}
-
-
 // =====================================================
 // PIXEL ART MONSTER (ドット絵風SVG)
 // pixel = 8px の rect を並べて描く
@@ -1551,50 +1484,297 @@ function getMonsterData(stage) {
   return { name: ls.name, label: ls.label, glow: ls.glow, svg: svgBody };
 }
 
-/* =====================================================
-   MONSTER SYSTEM
-   各ステージ: 10正解ごとに進化 (0〜29 = 30段階)
-   ===================================================== */
-
 let prevStage = -1;
 
 function getMonsterStage(correctCount) {
   return Math.min(Math.floor(correctCount / 15), 19);
 }
 
-function renderMonster(correctCount, animate) {
-  const stage = getMonsterStage(correctCount);
-  const data  = getMonsterData(stage);
-  const xpInStage   = correctCount % 15;
-  const xpPct       = (xpInStage / 15) * 100;
-  const toNext       = 15 - xpInStage;
+/* =====================================================
+   DUNGEON MAP
+   ===================================================== */
+const dungeonMap = {
+  "AI基礎":            { icon:"🏰", name:"入門の城",        sub:"AIの基本を学ぶ" },
+  "生成AI":            { icon:"🔮", name:"生成の魔塔",       sub:"創造の魔法が宿る" },
+  "機械学習":          { icon:"⚙️", name:"学習機械の工房",   sub:"データが力を生む" },
+  "ディープラーニング": { icon:"🧠", name:"深層の迷宮",       sub:"深く潜るほど強くなる" },
+  "データ活用":        { icon:"📊", name:"データの神殿",      sub:"知識の宝が眠る" },
+  "プロンプト":        { icon:"✍️", name:"呪文師の書庫",     sub:"言葉が武器になる" },
+  "AI倫理":            { icon:"⚖️", name:"正義の裁判所",     sub:"善悪を問う試練" },
+  "著作権・個人情報":  { icon:"🔐", name:"守護の砦",          sub:"情報を守る戦い" },
+  "セキュリティ":      { icon:"🛡️", name:"鉄壁の要塞",      sub:"難攻不落の難関" },
+  "ビジネス活用":      { icon:"💼", name:"商人の王国",        sub:"実務で活かす知恵" },
+  "業務改善":          { icon:"🔧", name:"改革の工場",        sub:"変革の炎が燃える" },
+  "EC・マーケティング活用": { icon:"🛒", name:"市場の大聖堂", sub:"商売の極意を極める" },
+};
 
-  // グロウカラー
-  document.documentElement.style.setProperty('--monster-glow', data.glow);
-  document.getElementById('monsterName').textContent  = data.name;
-  document.getElementById('monsterStageLabel').textContent = data.label;
-  document.getElementById('monsterXpBar').style.width  = xpPct + '%';
+/* =====================================================
+   BUILD QUESTIONS
+   ===================================================== */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
-  if (stage >= 19 && correctCount >= 285) {
-    document.getElementById('monsterXpLabel').textContent = '🏆 全ステージ制覇！';
-    document.getElementById('monsterNextHint').textContent = '';
-  } else {
-    document.getElementById('monsterXpLabel').textContent = `正解 ${xpInStage} / 15 で進化`;
-    document.getElementById('monsterNextHint').textContent =
-      stage < 19 ? `あと ${toNext} 問正解で「${getMonsterData(stage+1).name}」に進化！` : '';
+const TARGET = 300;
+const questions = [];
+for (let i = 0; i < TARGET; i++) {
+  const src = bank[i % bank.length];
+  const origChoices = src[2];
+  const correctText = origChoices[src[3]];
+  const shuffled = shuffle(origChoices);
+  questions.push({
+    id: i + 1,
+    category: src[0],
+    question: src[1],
+    choices: shuffled,
+    answer: shuffled.indexOf(correctText),
+    explanation: src[4]
+  });
+}
+
+const categories = [...new Set(questions.map(q => q.category))];
+let currentCategory = categories[0];
+let currentIndex    = 0;
+let currentMode     = 'normal';
+let displayList     = [];
+
+const results = JSON.parse(localStorage.getItem('aiPassportQuestResults') || '{}');
+function saveResults() { localStorage.setItem('aiPassportQuestResults', JSON.stringify(results)); }
+
+/* =====================================================
+   BUILD DISPLAY LIST
+   ===================================================== */
+function buildList() {
+  let base = questions.filter(q => q.category === currentCategory);
+  if (currentMode === 'retry') base = base.filter(q => results[q.id] && !results[q.id].correct);
+  if (currentMode === 'random') base = shuffle(base);
+  displayList = base;
+}
+
+/* =====================================================
+   RENDER LESSONS
+   ===================================================== */
+function renderLessons() {
+  document.getElementById('lessonGrid').innerHTML = lessons.map(function(l) {
+    var dg = dungeonMap[l.cat] || { icon:'📁', name:l.cat };
+    return '<article class="lesson-card">'
+      + '<div class="lesson-cat">' + dg.icon + ' ' + dg.name + '</div>'
+      + '<h3>' + l.cat + '</h3>'
+      + '<ul>' + l.points.map(function(p){ return '<li>' + p + '</li>'; }).join('') + '</ul>'
+      + '</article>';
+  }).join('');
+}
+
+/* =====================================================
+   RENDER CATEGORIES (Dungeon Map)
+   ===================================================== */
+function renderCategories() {
+  document.getElementById('categoryList').innerHTML = categories.map(function(c) {
+    var d       = dungeonMap[c] || { icon:'📁', name:c, sub:'' };
+    var qs      = questions.filter(function(q){ return q.category === c; });
+    var total   = qs.length;
+    var answered= qs.filter(function(q){ return results[q.id] !== undefined; }).length;
+    var correct = qs.filter(function(q){ return results[q.id] && results[q.id].correct; }).length;
+    var cleared = correct === total;
+    var pct     = total ? Math.round(answered / total * 100) : 0;
+    var isActive= c === currentCategory;
+
+    return '<div>'
+      + '<button class="dungeon-btn' + (isActive ? ' active' : '') + (cleared ? ' cleared' : '') + '"'
+      + ' onclick="selectCategory(\'' + c + '\')">'
+      + '<span class="dungeon-icon">' + d.icon + '</span>'
+      + '<span class="dungeon-info">'
+      + '<span class="dungeon-name">' + d.name + '</span>'
+      + '<span class="dungeon-sub">' + d.sub + '</span>'
+      + '</span>'
+      + '<span class="dungeon-right">'
+      + (cleared ? '<span class="dungeon-crown">👑</span>' : '')
+      + '<span class="dungeon-progress-wrap"><span class="dungeon-progress-fill" style="width:' + pct + '%"></span></span>'
+      + '<span class="dungeon-score">' + correct + '/' + total + '</span>'
+      + '</span>'
+      + '</button>'
+      + '<button class="dungeon-reset-btn' + (isActive ? ' show' : '') + '"'
+      + ' onclick="resetCategory(\'' + c + '\')">🔄 このダンジョンをやり直す</button>'
+      + '</div>';
+  }).join('');
+}
+
+/* =====================================================
+   RENDER QUESTION
+   ===================================================== */
+function renderQuestion() {
+  buildList();
+  renderCategories();
+
+  var modeNames = { normal:'通常', random:'🎲 ランダム', retry:'⚡ 復習' };
+  document.getElementById('modeLabel').textContent = modeNames[currentMode];
+
+  var dg = dungeonMap[currentCategory];
+  document.getElementById('categoryLabel').textContent = dg ? dg.icon + ' ' + dg.name : currentCategory;
+
+  var list = displayList;
+
+  if (list.length === 0) {
+    document.getElementById('quizContent').innerHTML =
+      '<div class="empty-state"><div class="big">🎉</div><p>このダンジョンに間違えた問題はありません！<br>全問正解です。</p></div>';
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('questionNumber').textContent = '0 / 0';
+    updateStats();
+    return;
   }
 
-  const svgHtml = `<svg viewBox="0 0 128 160" xmlns="http://www.w3.org/2000/svg">${data.svg}</svg>`;
-  const wrap = document.getElementById('monsterWrap');
+  if (currentIndex >= list.length) currentIndex = 0;
+  var q = list[currentIndex];
+
+  document.getElementById('questionNumber').textContent = (currentIndex + 1) + ' / ' + list.length;
+  document.getElementById('progressBar').style.width = ((currentIndex + 1) / list.length * 100) + '%';
+
+  var answered = results[q.id];
+
+  var choicesHtml = q.choices.map(function(choice, idx) {
+    var cls = 'choice-btn';
+    if (answered !== undefined) {
+      if (idx === q.answer) cls += ' correct';
+      else if (idx === answered.selected) cls += ' wrong';
+    }
+    return '<button class="' + cls + '" onclick="answerQuestion(' + q.id + ',' + idx + ')"'
+      + (answered !== undefined ? ' disabled' : '') + '>'
+      + '<span class="choice-letter">' + String.fromCharCode(65 + idx) + '</span>'
+      + choice + '</button>';
+  }).join('');
+
+  document.getElementById('quizContent').innerHTML =
+    '<div class="question-text">' + q.question + '</div>'
+    + '<div class="choices">' + choicesHtml + '</div>'
+    + '<div class="explanation' + (answered !== undefined ? ' show' : '') + '">'
+    + '<strong>解説：</strong> ' + q.explanation + '</div>';
+
+  updateStats();
+}
+
+/* =====================================================
+   ANSWER
+   ===================================================== */
+function answerQuestion(id, selected) {
+  var q = questions.find(function(x){ return x.id === id; });
+  var wasCorrect = selected === q.answer;
+  var prevCorrect = Object.values(results).filter(function(r){ return r.correct; }).length;
+  results[id] = { selected: selected, correct: wasCorrect };
+  saveResults();
+  renderQuestion();
+  var newCorrect = Object.values(results).filter(function(r){ return r.correct; }).length;
+  if (wasCorrect && newCorrect > prevCorrect) renderMonster(newCorrect, true);
+  if (wasCorrect) checkDungeonClear(q.category);
+}
+
+/* =====================================================
+   MODE & NAVIGATION
+   ===================================================== */
+function setMode(mode) {
+  currentMode  = mode;
+  currentIndex = 0;
+  ['btnNormal','btnRandom','btnRetry'].forEach(function(id) {
+    document.getElementById(id).classList.remove('btn-primary');
+    document.getElementById(id).classList.add('btn-ghost');
+  });
+  var map = { normal:'btnNormal', random:'btnRandom', retry:'btnRetry' };
+  var btn = document.getElementById(map[mode]);
+  btn.classList.remove('btn-ghost');
+  btn.classList.add('btn-primary');
+  renderQuestion();
+}
+
+function selectCategory(cat) {
+  currentCategory = cat;
+  currentIndex    = 0;
+  renderQuestion();
+}
+
+document.getElementById('prevBtn').onclick = function() {
+  var len = Math.max(displayList.length, 1);
+  currentIndex = (currentIndex - 1 + len) % len;
+  renderQuestion();
+};
+document.getElementById('nextBtn').onclick = function() {
+  var len = Math.max(displayList.length, 1);
+  currentIndex = (currentIndex + 1) % len;
+  renderQuestion();
+};
+
+/* =====================================================
+   STATS
+   ===================================================== */
+function updateStats() {
+  var answered = Object.keys(results).length;
+  var correct  = Object.values(results).filter(function(r){ return r.correct; }).length;
+  document.getElementById('totalQuestions').textContent = questions.length;
+  document.getElementById('answeredCount').textContent  = answered;
+  document.getElementById('correctCount').textContent   = correct;
+  document.getElementById('rate').textContent = answered ? Math.round(correct / answered * 100) + '%' : '0%';
+}
+
+/* =====================================================
+   RESET
+   ===================================================== */
+function resetCategory(cat) {
+  var dg = dungeonMap[cat];
+  var name = dg ? dg.name : cat;
+  if (!confirm('「' + name + '」の記録をリセットしますか？')) return;
+  questions.filter(function(q){ return q.category === cat; }).forEach(function(q) {
+    delete results[q.id];
+  });
+  saveResults();
+  currentIndex = 0;
+  renderQuestion();
+  var newCorrect = Object.values(results).filter(function(r){ return r.correct; }).length;
+  renderMonster(newCorrect, false);
+  updateStats();
+}
+
+function openReset()  { document.getElementById('resetOverlay').classList.add('show'); }
+function closeReset() { document.getElementById('resetOverlay').classList.remove('show'); }
+
+/* =====================================================
+   MONSTER RENDER
+   ===================================================== */
+function renderMonster(correctCount, animate) {
+  var stage = getMonsterStage(correctCount);
+  var data  = getMonsterData(stage);
+  var xpInStage = correctCount % 15;
+  var xpPct     = (xpInStage / 15) * 100;
+  var toNext    = 15 - xpInStage;
+
+  document.documentElement.style.setProperty('--monster-glow', data.glow);
+  document.getElementById('monsterName').textContent       = data.name;
+  document.getElementById('monsterStageLabel').textContent = data.label;
+  document.getElementById('monsterXpBar').style.width      = xpPct + '%';
+
+  if (stage >= 19 && correctCount >= 285) {
+    document.getElementById('monsterXpLabel').textContent  = '🏆 全ステージ制覇！';
+    document.getElementById('monsterNextHint').textContent = '';
+  } else {
+    document.getElementById('monsterXpLabel').textContent  = '正解 ' + xpInStage + ' / 15 で進化';
+    var nextName = stage < 19 ? getMonsterData(stage + 1).name : '';
+    document.getElementById('monsterNextHint').textContent =
+      stage < 19 ? 'あと ' + toNext + ' 問正解で「' + nextName + '」に進化！' : '';
+  }
+
+  var svgHtml = '<svg viewBox="0 0 128 160" xmlns="http://www.w3.org/2000/svg">' + data.svg + '</svg>';
+  var wrap = document.getElementById('monsterWrap');
 
   if (animate) {
     wrap.innerHTML = svgHtml;
-    wrap.querySelector('svg').classList.add('monster-evolve-flash');
+    var svgEl = wrap.querySelector('svg');
+    if (svgEl) svgEl.classList.add('monster-evolve-flash');
   } else {
     wrap.innerHTML = svgHtml;
   }
 
-  // 進化演出
   if (animate && stage > prevStage && prevStage >= 0) {
     showEvolve(data);
   }
@@ -1602,10 +1782,10 @@ function renderMonster(correctCount, animate) {
 }
 
 function showEvolve(data) {
-  document.getElementById('evolveName').textContent = `${data.name} に進化！`;
+  document.getElementById('evolveName').textContent = data.name + ' に進化！';
   document.getElementById('evolveDesc').textContent  = data.label;
   document.getElementById('evolveSvgBig').innerHTML =
-    `<svg viewBox="0 0 128 160" xmlns="http://www.w3.org/2000/svg">${data.svg}</svg>`;
+    '<svg viewBox="0 0 128 160" xmlns="http://www.w3.org/2000/svg">' + data.svg + '</svg>';
   document.getElementById('evolveOverlay').classList.add('show');
 }
 
@@ -1613,15 +1793,84 @@ function closeEvolve() {
   document.getElementById('evolveOverlay').classList.remove('show');
 }
 
-function openReset()  { document.getElementById('resetOverlay').classList.add('show'); }
-function closeReset() { document.getElementById('resetOverlay').classList.remove('show'); }
+/* =====================================================
+   DUNGEON CLEAR
+   ===================================================== */
+var clearedDungeons = JSON.parse(sessionStorage.getItem('clearedDungeons') || '{}');
+
+function checkDungeonClear(cat) {
+  if (clearedDungeons[cat]) return;
+  var catQuestions = questions.filter(function(q){ return q.category === cat; });
+  var allCorrect = catQuestions.every(function(q){ return results[q.id] && results[q.id].correct; });
+  if (!allCorrect) return;
+  clearedDungeons[cat] = true;
+  sessionStorage.setItem('clearedDungeons', JSON.stringify(clearedDungeons));
+  var dg = dungeonMap[cat];
+  var name = dg ? dg.icon + ' ' + dg.name : cat;
+  document.getElementById('clearDungeonName').textContent = name;
+  document.getElementById('dungeonClearOverlay').classList.add('show');
+  startConfetti();
+}
+
+function closeDungeonClear() {
+  document.getElementById('dungeonClearOverlay').classList.remove('show');
+  stopConfetti();
+}
+
+var confettiAnim = null;
+var confettiParticles = [];
+
+function startConfetti() {
+  var canvas = document.getElementById('confettiCanvas');
+  var ctx = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  confettiParticles = [];
+  var colors = ['#fbbf24','#6366f1','#34d399','#f87171','#22d3ee','#ffffff','#fb923c'];
+  for (var i = 0; i < 120; i++) {
+    confettiParticles.push({
+      x:     Math.random() * canvas.width,
+      y:     Math.random() * canvas.height - canvas.height,
+      w:     Math.random() * 10 + 5,
+      h:     Math.random() * 6  + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot:   Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 6,
+      vy:   Math.random() * 3 + 2,
+      vx:   (Math.random() - 0.5) * 2
+    });
+  }
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettiParticles.forEach(function(p) {
+      p.y   += p.vy;
+      p.x   += p.vx;
+      p.rot += p.rotSpeed;
+      if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
+      ctx.save();
+      ctx.translate(p.x + p.w/2, p.y + p.h/2);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    confettiAnim = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function stopConfetti() {
+  if (confettiAnim) { cancelAnimationFrame(confettiAnim); confettiAnim = null; }
+  var canvas = document.getElementById('confettiCanvas');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  confettiParticles = [];
+}
+
 function doReset() {
-  // localStorageをクリア
   localStorage.removeItem('aiPassportQuestResults');
-  // resultsオブジェクトをリセット
-  Object.keys(results).forEach(k => delete results[k]);
-  // UI更新
-  prevStage = -1;
+  Object.keys(results).forEach(function(k){ delete results[k]; });
+  prevStage    = -1;
   currentIndex = 0;
   closeReset();
   renderQuestion();
@@ -1633,12 +1882,12 @@ function doReset() {
 /* =====================================================
    INIT
    ===================================================== */
-setMode('normal'); // ボタン初期状態
+setMode('normal');
 renderLessons();
 renderQuestion();
-// モンスター初期表示（保存済みの正解数で復元）
-const initCorrect = Object.values(results).filter(r => r.correct).length;
+var initCorrect = Object.values(results).filter(function(r){ return r.correct; }).length;
 renderMonster(initCorrect, false);
+
 </script>
 </body>
 </html>
